@@ -21,11 +21,12 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 
 public class ApachePOIExcelReader {
     private static boolean verbose = false;
+    private static boolean xml_out = false;
     private static boolean recursive = false;
     private static SpreadsheetProperties sp;
 
@@ -127,21 +128,7 @@ public class ApachePOIExcelReader {
 		}
     }
 
-    public static void outputResults() {    	
-		if (verbose) {
-	        System.out.println("Number of:");
-	        System.out.println("\tworksheets:\t" + sp.getWorkSheets());
-	        System.out.println("\tfonts:\t" + sp.getFonts());
-	        System.out.println("\tdefined names:\t" + sp.getDefinedNames());
-	        System.out.println("\tcell styles:\t" + sp.getCellStyles()); 
-	        System.out.println("\tformulas:\t" + sp.getFormulas());
-	        System.out.println("\thyperlinks:\t" + sp.getHyperlinks());
-	        System.out.println("\tcomments:\t" + sp.getComments());
-	        System.out.println("\t(probably) has vba macros:\t" + sp.getHasVBAMacro());
-	        System.out.println("\tshapes:\t" + sp.getShapes());
-	        System.out.println("\tdates:\t" + sp.getDates());
-	        System.out.println("\tcells (physically) used:\t" + sp.getCellsUsed());
-		}
+    public static void outputResults() {   
 		String result = null;
 	    if (sp.getWorkSheets() > 0 ||
 	    		sp.getFonts() > 0 ||
@@ -158,8 +145,41 @@ public class ApachePOIExcelReader {
 	    }
 	    else {
 	    	result = "simple/static";
-	    }
-	    System.out.println(result);
+	    }    	
+    	if (xml_out) {
+	        System.out.println("<spreadsheetComplexityReport>");
+	        System.out.println("\t<result>" + result + "</result>");
+	        System.out.println("\t<worksheets>" + sp.getWorkSheets() + "</worksheets>");
+	        System.out.println("\t<fonts>" + sp.getFonts() + "</>");
+	        System.out.println("\t<definedNames>" + sp.getDefinedNames() + "</definedNames>");
+	        System.out.println("\t<cellStyles>" + sp.getCellStyles() + "</cellStyles>");
+	        System.out.println("\t<formulas>" + sp.getFormulas() + "</formulas>");
+	        System.out.println("\t<hyperlinks>" + sp.getHyperlinks() + "</hyperlinks>");
+	        System.out.println("\t<comments>" + sp.getComments() + "</comments>");
+	        System.out.println("\t<vbaMacros>" + sp.getHasVBAMacro() + "</vbaMacros>");
+	        System.out.println("\t<shapes>" + sp.getShapes() + "</shapes>");
+	        System.out.println("\t<dates>" + sp.getDates() + "</dates>");
+	        System.out.println("\t<usedCells>" + sp.getCellsUsed() + "</usedCells>");
+	        System.out.println("</spreadsheetComplexityReport>");
+    	}
+    	else if (verbose) {
+    	    System.out.println("Result: " + result);    		
+	        System.out.println("Number of:");
+	        System.out.println("<worksheets>" + sp.getWorkSheets() + "</worksheets>");
+	        System.out.println("\tfonts:\t" + sp.getFonts());
+	        System.out.println("\tdefined names:\t" + sp.getDefinedNames());
+	        System.out.println("\tcell styles:\t" + sp.getCellStyles()); 
+	        System.out.println("\tformulas:\t" + sp.getFormulas());
+	        System.out.println("\thyperlinks:\t" + sp.getHyperlinks());
+	        System.out.println("\tcomments:\t" + sp.getComments());
+	        System.out.println("\t(probably) has vba macros:\t" + sp.getHasVBAMacro());
+	        System.out.println("\tshapes:\t" + sp.getShapes());
+	        System.out.println("\tdates:\t" + sp.getDates());
+	        System.out.println("\tcells (physically) used:\t" + sp.getCellsUsed());
+		}
+    	else {
+    	    System.out.println(result);
+       	}
     }
 
      
@@ -180,8 +200,9 @@ public class ApachePOIExcelReader {
     	HelpFormatter formatter = new HelpFormatter();
     	CommandLine cmd = null;
     	Options options = new Options();
-    	options.addOption("v", "verbose", false, "verbose output: show number of occurrences of properties" );
-    	options.addOption("r", "recursive", false, "recurse subdirectories" );
+    	options.addOption("v", "verbose", false, "verbose output: show number of occurrences of properties in text form" );
+    	options.addOption("x", "xml_out", false, "xml output: show number of occurrences of properties in xml form (suppresses verbose output)");
+    	options.addOption("r", "recursive", false, "recurse into subdirectories" );
     	options.addOption( Option.builder( "dir" )
     			.required(true)
     			.hasArg()
@@ -203,6 +224,7 @@ public class ApachePOIExcelReader {
     	}
 
     	verbose = cmd.hasOption("verbose");
+    	xml_out = cmd.hasOption("xml_out");
     	recursive = cmd.hasOption("recursive");
     	String dirName = cmd.getOptionValue("dir");
     	String fileName = cmd.getOptionValue("file");
@@ -211,7 +233,7 @@ public class ApachePOIExcelReader {
     	WildcardFileFilter fileFilter = new WildcardFileFilter(fileName);
     	Collection<File> files = null;
     	if (recursive) {
-    		files = FileUtils.listFiles(dir, fileFilter, TrueFileFilter.INSTANCE);        	
+    		files = FileUtils.listFiles(dir, fileFilter, DirectoryFileFilter.DIRECTORY);        	
     	}
     	else {
     		files = FileUtils.listFiles(dir, fileFilter, null);
@@ -233,5 +255,6 @@ public class ApachePOIExcelReader {
             	System.out.println("Error: file " + file.getName() + " is not an Excel file.");
             }
     	}
+        System.exit(0);
     }
 }
