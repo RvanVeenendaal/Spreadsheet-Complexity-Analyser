@@ -2,14 +2,14 @@
 <classpath>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Users/Remco/Documents/AIG spreadsheets/Spreadsheet-Complexity-Analyser/java/poi-3.17/poi-3.17.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Remco/Documents/AIG spreadsheets/Spreadsheet-Complexity-Analyser/java/poi-3.17/poi-ooxml-3.17.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Remco/Documents/AIG spreadsheets/Spreadsheet-Complexity-Analyser/java/poi-3.17/poi-ooxml-schemas-3.17.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Remco/Documents/AIG spreadsheets/Spreadsheet-Complexity-Analyser/java/poi-3.17/ooxml-lib/curvesapi-1.04.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Remco/Documents/AIG spreadsheets/Spreadsheet-Complexity-Analyser/java/poi-3.17/ooxml-lib/xmlbeans-2.6.0.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Remco/Documents/AIG spreadsheets/Spreadsheet-Complexity-Analyser/java/poi-3.17/lib/commons-codec-1.10.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Remco/Documents/AIG spreadsheets/Spreadsheet-Complexity-Analyser/java/poi-3.17/lib/commons-collections4-4.1.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Remco/Documents/AIG spreadsheets/Spreadsheet-Complexity-Analyser/java/commons-cli-1.4/commons-cli-1.4.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Remco/Documents/AIG spreadsheets/Spreadsheet-Complexity-Analyser/java/commons-io-2.6/commons-io-2.6.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Remco/eclipse-workspace/SpreadsheetComplexityAnalyser/lib/poi-3.17.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Remco/eclipse-workspace/SpreadsheetComplexityAnalyser/lib/poi-ooxml-3.17.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Remco/eclipse-workspace/SpreadsheetComplexityAnalyser/lib/poi-ooxml-schemas-3.17.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Remco/eclipse-workspace/SpreadsheetComplexityAnalyser/lib/curvesapi-1.04.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Remco/eclipse-workspace/SpreadsheetComplexityAnalyser/lib/xmlbeans-2.6.0.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Remco/eclipse-workspace/SpreadsheetComplexityAnalyser/lib/commons-codec-1.10.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Remco/eclipse-workspace/SpreadsheetComplexityAnalyser/lib/commons-collections4-4.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Remco/eclipse-workspace/SpreadsheetComplexityAnalyser/lib/commons-cli-1.4.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Remco/eclipse-workspace/SpreadsheetComplexityAnalyser/lib/commons-io-2.6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
