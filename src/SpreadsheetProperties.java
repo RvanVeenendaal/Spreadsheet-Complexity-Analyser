@@ -1,17 +1,18 @@
 public class SpreadsheetProperties {
 	
-	private int iFormulas = 0;
-	private int iHyperlinks = 0;
-	private int iDefinedNames = 0;
-	private int iComments = 0;
-	private int iWorkSheets = 0;
+	private int iFormulas = 0; // formulas present in spreadsheet
+	private int iHyperlinks = 0; // hyperlinks present in spreadsheet
+	private int iDefinedNames = 0; // defined names present in spreadsheet
+	private int iComments = 0; // comments present in spreadsheet
+	private int iWorkSheets = 0; // worksheets present in spreadsheet
 	private boolean bVBAMacros = false; // Indicates if a workbook 'seems to have (had)' vba macros
-	private int iShapes= 0;
-	private int iDates = 0;
-	private int iCellsUsed = 0;
-	private int iFonts = 0;
-	private int iCellStyles = 0;
-	private int iColors = 0;
+	private int iShapes= 0; // shapes present in spreadsheet
+	private int iDates = 0; // dates present in spreadsheet
+	private int iCellsUsed = 0; // cells used in spreadsheet
+	private int iFonts = 0; // fonts used in spreadsheet
+	private int iCellStyles = 0; // cell styles used in spreadsheet
+	private int iColors = 0; // colours used in spreadsheet
+	private int iExternalLinks = 0; // external links present in formulas (!) in spreadsheet
 
 	public int getFormulas() {
 		return iFormulas;
@@ -107,6 +108,14 @@ public class SpreadsheetProperties {
 
 	public void setCellStyles(int iCellStyles) {
 		this.iCellStyles = iCellStyles;
+	}
+
+	public int getExternalLinks() {
+		return iExternalLinks;
+	}
+
+	public void setExternalLinks(int iExternalLinks) {
+		this.iExternalLinks = iExternalLinks;
 	}
 
 }
