@@ -1,3 +1,4 @@
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.hssf.usermodel.HSSFPatriarch;
 import org.apache.poi.hssf.usermodel.HSSFShape;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -38,7 +39,14 @@ public class ApachePOIExcelReader {
 	        sp.setDefinedNames(workbook.getNumberOfNames());
 	        sp.setWorkSheets(workbook.getNumberOfSheets());
 	        sp.setFonts(workbook.getNumberOfFonts());
-	        sp.setCellStyles(workbook.getNumCellStyles());	        
+	        sp.setCellStyles(workbook.getNumCellStyles());
+	        if (isXSSF) {
+		        XSSFWorkbook xssfWorkbook = (XSSFWorkbook) workbook;
+		        sp.setExternalLinks(xssfWorkbook.getExternalLinksTable().size());
+	        }
+	        else {
+	        	sp.setExternalLinks(-1); // not available for hssf
+	        }
 	        Iterator<Sheet> sheetIterator = workbook.iterator();
 	        while (sheetIterator.hasNext()) {
 	        	Sheet currentSheet = sheetIterator.next();
@@ -114,7 +122,7 @@ public class ApachePOIExcelReader {
              * therefore, we cannot be sure that there actually is a vba macro
             */
             if (macros.size() > 0) { // due to Sheet1 and ThisWorkbook, perhaps > 2 ?
-                sp.setHasVBAMacros(true);          	
+                sp.setHasVBAMacros(true);
             }            
             reader.close();
 		} catch (FileNotFoundException e) {
@@ -128,12 +136,16 @@ public class ApachePOIExcelReader {
 		}
     }
 
+    
+// Todo: read threshold values for result calculation from config.ini file (or as CLI parameters?)    
+// and use those values for calculating and outputting result simple/static or complex/dynamic
+// but only when user asks for result calculation via CLI parameter
     public static void outputResults() {   
 		String result = null;
-	    if (sp.getWorkSheets() > 0 ||
-	    		sp.getFonts() > 0 ||
+	    if (sp.getWorkSheets() > 1 ||
+	    		sp.getFonts() > 1 ||
 	    		sp.getDefinedNames() > 0 ||
-	    		sp.getCellStyles() > 0 ||
+	    		sp.getCellStyles() > 1 ||
 	    		sp.getFormulas() > 0 ||
 	    		sp.getHyperlinks() > 0 ||
 	    		sp.getComments() > 0 ||
@@ -147,8 +159,8 @@ public class ApachePOIExcelReader {
 	    	result = "simple/static";
 	    }    	
     	if (xml_out) {
-	        System.out.println("<spreadsheetComplexityReport>");
-	        System.out.println("\t<result>" + result + "</result>");
+	        System.out.println("<spreadsheetComplexityReport'>");
+//	        System.out.println("\t<result>" + result + "</result>");
 	        System.out.println("\t<worksheets>" + sp.getWorkSheets() + "</worksheets>");
 	        System.out.println("\t<fonts>" + sp.getFonts() + "</>");
 	        System.out.println("\t<definedNames>" + sp.getDefinedNames() + "</definedNames>");
@@ -160,28 +172,34 @@ public class ApachePOIExcelReader {
 	        System.out.println("\t<shapes>" + sp.getShapes() + "</shapes>");
 	        System.out.println("\t<dates>" + sp.getDates() + "</dates>");
 	        System.out.println("\t<usedCells>" + sp.getCellsUsed() + "</usedCells>");
+	        System.out.println("\t<externalLinks>" + sp.getExternalLinks() + "</externalLinks>");
 	        System.out.println("</spreadsheetComplexityReport>");
     	}
     	else if (verbose) {
-    	    System.out.println("Result: " + result);    		
-	        System.out.println("Number of:");
-	        System.out.println("<worksheets>" + sp.getWorkSheets() + "</worksheets>");
-	        System.out.println("\tfonts:\t" + sp.getFonts());
-	        System.out.println("\tdefined names:\t" + sp.getDefinedNames());
-	        System.out.println("\tcell styles:\t" + sp.getCellStyles()); 
-	        System.out.println("\tformulas:\t" + sp.getFormulas());
-	        System.out.println("\thyperlinks:\t" + sp.getHyperlinks());
-	        System.out.println("\tcomments:\t" + sp.getComments());
-	        System.out.println("\t(probably) has vba macros:\t" + sp.getHasVBAMacro());
-	        System.out.println("\tshapes:\t" + sp.getShapes());
-	        System.out.println("\tdates:\t" + sp.getDates());
-	        System.out.println("\tcells (physically) used:\t" + sp.getCellsUsed());
+//    	    System.out.println("Result: " + result);
+    		System.out.println("Spreadsheet complexity analyser results:");
+	        System.out.println("Number of");
+	        System.out.println("\tworksheets:\t\t" + sp.getWorkSheets());
+	        System.out.println("\tfonts:\t\t\t" + sp.getFonts());
+	        System.out.println("\tdefined names:\t\t" + sp.getDefinedNames());
+	        System.out.println("\tcell styles:\t\t" + sp.getCellStyles()); 
+	        System.out.println("\tformulas:\t\t" + sp.getFormulas());
+	        System.out.println("\thyperlinks:\t\t" + sp.getHyperlinks());
+	        System.out.println("\tcomments:\t\t" + sp.getComments());
+	        System.out.println("\tvba macros:\t\t" + sp.getHasVBAMacro());
+	        System.out.println("\tshapes:\t\t\t" + sp.getShapes());
+	        System.out.println("\tdates:\t\t\t" + sp.getDates());
+	        System.out.println("\tcells used:\t\t" + sp.getCellsUsed());
+	        System.out.println("\texternal links:\t\t" + sp.getExternalLinks());
+	        System.out.println("Legend:");
+	        System.out.println("\t0 or more = number of occurrences,");
+	        System.out.println("\tfalse = does not occur (for VBA macros),");
+	        System.out.println("\ttrue = probably occurs (for VBA macros).");
 		}
     	else {
-    	    System.out.println(result);
-       	}
+    	    System.out.println("Spreadsheet complexity analyser result summary: probably " + result);
+    	}
     }
-
      
 /*
  * Spreadsheet Complexity Analyser
