@@ -15,7 +15,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -140,7 +139,7 @@ public class ApachePOIExcelReader {
 // Todo: read threshold values for result calculation from config.ini file (or as CLI parameters?)    
 // and use those values for calculating and outputting result simple/static or complex/dynamic
 // but only when user asks for result calculation via CLI parameter
-    public static void outputResults() {   
+    public static void outputResults(File file) {   
 		String result = null;
 	    if (sp.getWorkSheets() > 1 ||
 	    		sp.getFonts() > 1 ||
@@ -159,10 +158,11 @@ public class ApachePOIExcelReader {
 	    	result = "simple/static";
 	    }    	
     	if (xml_out) {
-	        System.out.println("<spreadsheetComplexityReport'>");
+	        System.out.println("<spreadsheetComplexityResult>");
+	        System.out.println("\t<file>" + file.getAbsoluteFile() + "</file>");
 //	        System.out.println("\t<result>" + result + "</result>");
 	        System.out.println("\t<worksheets>" + sp.getWorkSheets() + "</worksheets>");
-	        System.out.println("\t<fonts>" + sp.getFonts() + "</>");
+	        System.out.println("\t<fonts>" + sp.getFonts() + "</fonts>");
 	        System.out.println("\t<definedNames>" + sp.getDefinedNames() + "</definedNames>");
 	        System.out.println("\t<cellStyles>" + sp.getCellStyles() + "</cellStyles>");
 	        System.out.println("\t<formulas>" + sp.getFormulas() + "</formulas>");
@@ -173,12 +173,14 @@ public class ApachePOIExcelReader {
 	        System.out.println("\t<dates>" + sp.getDates() + "</dates>");
 	        System.out.println("\t<usedCells>" + sp.getCellsUsed() + "</usedCells>");
 	        System.out.println("\t<externalLinks>" + sp.getExternalLinks() + "</externalLinks>");
-	        System.out.println("</spreadsheetComplexityReport>");
+	        System.out.println("\t<legend>Legend: 0 or more = number of occurrences, false = does not occur (for VBA macros), true = probably occurs (for VBA macros), -1 = not available (for external links in XLS).");
+	        System.out.println("</spreadsheetComplexityResult>");
     	}
     	else if (verbose) {
-//    	    System.out.println("Result: " + result);
+    		//    	    System.out.println("Result: " + result);
     		System.out.println("Spreadsheet complexity analyser results:");
-	        System.out.println("Number of");
+    		System.out.println("File: " + file.getAbsoluteFile());
+    		System.out.println("Number of");
 	        System.out.println("\tworksheets:\t\t" + sp.getWorkSheets());
 	        System.out.println("\tfonts:\t\t\t" + sp.getFonts());
 	        System.out.println("\tdefined names:\t\t" + sp.getDefinedNames());
@@ -195,60 +197,50 @@ public class ApachePOIExcelReader {
 	        System.out.println("\t0 or more = number of occurrences,");
 	        System.out.println("\tfalse = does not occur (for VBA macros),");
 	        System.out.println("\ttrue = probably occurs (for VBA macros).");
+	        System.out.println("\t-1 = not available (for external links in XLS).");
 		}
     	else {
-    	    System.out.println("Spreadsheet complexity analyser result summary: probably " + result);
+    	    System.out.println("Spreadsheet complexity analyser result summary for\n\t" + file.getAbsoluteFile() + ":\n\tprobably " + result);
     	}
     }
      
+   public static void printHelp(String message, Options options) {
+   		HelpFormatter formatter = new HelpFormatter(); 
+   		System.out.println(message);
+	    formatter.printHelp("java -jar spreadsheet-complexity-analyser.jar DIR [-r] [-v] [-x]", options);
+	    System.out.println(" DIR\t\t  directory to process *.xl[st][xm] and *.xl[akms] files.");
+	    System.exit(0);  
+   }
 /*
  * Spreadsheet Complexity Analyser
- * java -jar spreadsheet-complexity-analyser.jar folder file(s) >
- * 	outputs filename and conclusion ("simple/static" or "complex/dynamic")
- * java -jar spreadsheet-complexity-analyser.jar -r folder file(s)
- *  same, but recurses subfolders
- * java -jar spreadsheet-complexity-analyser.jar -v folder file(s)
- *  same as first, but also outputs number of occurrences of properties
- * java -jar spreadsheet-complexity-analyser.jar -v -r folder file(s)
- *  same as first, but recurses subfolders and outputs number of occurrences
  */
     
     public static void main(String[] args) throws IOException {
     	CommandLineParser parser = new DefaultParser();
-    	HelpFormatter formatter = new HelpFormatter();
     	CommandLine cmd = null;
     	Options options = new Options();
     	options.addOption("v", "verbose", false, "verbose output: show number of occurrences of properties in text form" );
-    	options.addOption("x", "xml_out", false, "xml output: show number of occurrences of properties in xml form (suppresses verbose output)");
+    	options.addOption("x", "xml", false, "xml output: show number of occurrences of properties in xml form (suppresses verbose output)");
     	options.addOption("r", "recursive", false, "recurse into subdirectories" );
-    	options.addOption( Option.builder( "dir" )
-    			.required(true)
-    			.hasArg()
-    			.desc("directory to process" )
-    			.build());
-    	options.addOption( Option.builder( "file" )
-    			.required(true)
-    			.hasArg()
-    			.desc("filename (wildcards allowed)" )
-    			.build());
     	try {
     	    // parse the command line arguments
     	    cmd = parser.parse( options, args );
     	}
     	catch( ParseException exp ) {
-    	    System.out.println( "Unexpected exception:" + exp.getMessage() );
-    	    formatter.printHelp("spreadsheet-complexity-analyser", options);
-    	    System.exit(0);
+    	    printHelp("Unexpected exception:" + exp.getMessage(), options);
     	}
-
     	verbose = cmd.hasOption("verbose");
-    	xml_out = cmd.hasOption("xml_out");
+    	xml_out = cmd.hasOption("xml");
     	recursive = cmd.hasOption("recursive");
-    	String dirName = cmd.getOptionValue("dir");
-    	String fileName = cmd.getOptionValue("file");
     	
-    	File dir = new File(dirName);
-    	WildcardFileFilter fileFilter = new WildcardFileFilter(fileName);
+    	if (cmd.getArgs().length < 1 || cmd.getArgs().length > 1) {
+    		printHelp("Please provide exactly one input DIRectory.", options);
+    	}
+        File dir = new File(cmd.getArgs()[0]);
+        if (!(dir.exists() || dir.isDirectory())) {
+    		printHelp("DIR " + dir + " does not exist or is not a directory.", options);
+        }
+    	WildcardFileFilter fileFilter = new WildcardFileFilter("*.*");
     	Collection<File> files = null;
     	if (recursive) {
     		files = FileUtils.listFiles(dir, fileFilter, DirectoryFileFilter.DIRECTORY);        	
@@ -257,21 +249,23 @@ public class ApachePOIExcelReader {
     		files = FileUtils.listFiles(dir, fileFilter, null);
     	}
     	Iterator<File> fileIterator = files.iterator();
+    	if (xml_out) {
+    		System.out.println("<SpreadsheetComplexityResults>");
+    	}
         while (fileIterator.hasNext()) {
         	sp = new SpreadsheetProperties();
             File file = fileIterator.next();
-        	System.out.println("Processing " + file);
             if (file.getName().toLowerCase().matches("(.*)\\.xl[st][xm]$")) { //xlsx xlsm xltx xltm
             	processFile(file, true);
-                outputResults();
+            	outputResults(file);
             }
-            else if (file.getName().toLowerCase().matches("(.*)\\.xl[akms]$")) {
+            else if (file.getName().toLowerCase().matches("(.*)\\.xl[akms]$")) { // xla xlk xlm xls
             	processFile(file, false);
-                outputResults();
+            	outputResults(file);
             }
-            else {
-            	System.out.println("Error: file " + file.getName() + " is not an Excel file.");
-            }
+    	}
+    	if (xml_out) {
+    		System.out.println("</SpreadsheetComplexityResults>");
     	}
         System.exit(0);
     }
