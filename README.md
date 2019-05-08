@@ -1,5 +1,20 @@
 # Spreadsheet-Complexity-Analyser
 The Spreadsheet Complexity Analyser is a prototype for the Archive Interest Group (AIG) of the Open Preservation Foundation (OPF, http://openpreservation.org/).
+## Usage
+Execute
+
+java -jar SpreadsheetComplexityAnalyser.jar DIR
+
+to process *.xl[st][xm] and *.xl[akms] files in DIR (DIR must be a directory).
+
+Use the command line paramter -v for verbose text output. Use the command line parameter -x for verbose XML output (which suppresses -v). Use the command line paramter -r to also recurse into any subdirectories.
+
+Execute
+
+java -jar SpreadsheetComplexityAnalyser.jar
+
+without any paramters to get usage information.
+
 ## Motivation
 As AIG, we are studying the significant properties of spreadsheets. We want to find the best suited (spreadsheet) file format for preserving (significant properties of) spreadsheets. As part of this study, we wanted to be able to distinguish between 'simple/static' spreadsheets and 'complex/dynamic' spreadsheets.
 
@@ -11,8 +26,11 @@ In order to distinguish between these types of spreadsheets, we need to be able 
 ## Technology used
 The Spreadsheet Complexity Analyser is written in Java, and uses Apache POI (HSSF and XSSF) to access the Microsoft Excel spreadsheet formats (xls and xlsx) - which form the bulk of the spreadsheets that we (archives) receive.
 ## Installation
-The SpreadsheetComplexityAnalyser is available as a runnable Java 8 jar file. 
-Execute 'java -jar SpreadsheetComplexityAnalyser.jar' to get the usage information.
+The SpreadsheetComplexityAnalyser is available as an executable Java 8 jar file. 
+
+Execute e.g.
+
+java -jar SpreadsheetComplexityAnalyser.jar to get the usage information.
 ## Contribute
 We would greatly appreciate contributions to this initiative. You can help improve the code, give feedback on our approach or otherwise contribute to the AIG. Contributions are not limited to OPF members or archives, in the same way that preservation, spreadsheets and significant properties are not issues limited to OPF members or archives.
 ## Credits
