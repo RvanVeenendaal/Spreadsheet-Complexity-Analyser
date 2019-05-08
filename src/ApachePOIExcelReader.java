@@ -213,8 +213,8 @@ public class ApachePOIExcelReader {
    public static void printHelp(String message, Options options) {
    		HelpFormatter formatter = new HelpFormatter(); 
    		System.out.println(message);
-	    formatter.printHelp("java -jar spreadsheet-complexity-analyser.jar DIR [-r] [-v] [-x]", options);
-	    System.out.println(" DIR\t\t  directory to process *.xl[st][xm] and *.xl[akms] files.");
+	    formatter.printHelp("java -jar SpreadsheetComplexityAnalyser.jar DIR [-r] [-v] [-x]", options);
+	    System.out.println(" DIR\t\t  directory with *.xl[st][xm] and *.xl[akms] files to process.");
 	    System.exit(0);  
    }
 /*
@@ -256,6 +256,7 @@ public class ApachePOIExcelReader {
     	}
     	Iterator<File> fileIterator = files.iterator();
     	if (xml_out) {
+    		System.out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
     		System.out.println("<SpreadsheetComplexityResults>");
     	}
         while (fileIterator.hasNext()) {
