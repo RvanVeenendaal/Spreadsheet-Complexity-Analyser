@@ -32,7 +32,11 @@ public class ApachePOIExcelReader {
 
     public static void processFile(File file, boolean isXSSF) {    
     	try {
-        	FileInputStream excelFile = new FileInputStream(file);
+    		if(file.exists()) { 
+    			double kiloBytes = file.length() / 1024;    	          
+    			sp.setFileSize(kiloBytes);
+    		}
+    		FileInputStream excelFile = new FileInputStream(file);
 	        Workbook workbook;
 	        workbook = WorkbookFactory.create(excelFile);
 	        sp.setDefinedNames(workbook.getNumberOfNames());
@@ -161,6 +165,7 @@ public class ApachePOIExcelReader {
 	        System.out.println("<spreadsheetComplexityResult>");
 	        System.out.println("\t<file>" + file.getAbsoluteFile() + "</file>");
 //	        System.out.println("\t<result>" + result + "</result>");
+	        System.out.println("\t<fileSize>" + sp.getFileSize() + " kilobytes</fileSize>");
 	        System.out.println("\t<worksheets>" + sp.getWorkSheets() + "</worksheets>");
 	        System.out.println("\t<fonts>" + sp.getFonts() + "</fonts>");
 	        System.out.println("\t<definedNames>" + sp.getDefinedNames() + "</definedNames>");
@@ -180,6 +185,7 @@ public class ApachePOIExcelReader {
     		//    	    System.out.println("Result: " + result);
     		System.out.println("Spreadsheet complexity analyser results:");
     		System.out.println("File: " + file.getAbsoluteFile());
+    		System.out.println("\tsize (kilobytes):\t" + sp.getFileSize()); 
     		System.out.println("Number of");
 	        System.out.println("\tworksheets:\t\t" + sp.getWorkSheets());
 	        System.out.println("\tfonts:\t\t\t" + sp.getFonts());

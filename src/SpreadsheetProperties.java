@@ -13,6 +13,7 @@ public class SpreadsheetProperties {
 	private int iCellStyles = 0; // cell styles used in spreadsheet
 	private int iColors = 0; // colours used in spreadsheet
 	private int iExternalLinks = 0; // external links present in formulas (!) in spreadsheet
+	private double iFileSize = 0; // size of file (in kilobyte)
 
 	public int getFormulas() {
 		return iFormulas;
@@ -118,4 +119,11 @@ public class SpreadsheetProperties {
 		this.iExternalLinks = iExternalLinks;
 	}
 
+	public double getFileSize() {
+		return iFileSize;
+	}
+
+	public void setFileSize(double iFileSize) {
+		this.iFileSize = iFileSize;
+	}
 }
