@@ -7,11 +7,7 @@ java -jar SpreadsheetComplexityAnalyser.jar DIR
 
 to process *.xl[st][xm] and *.xl[akms] files in DIR (DIR must be a directory).
 
-Use the command line paramter -v for verbose text output.
-
-Use the command line parameter -x for verbose XML output (which suppresses -v).
-
-Use the command line paramter -r to also recurse into any subdirectories.
+Use the command line paramter -v for verbose text output. Use the command line parameter -x for verbose XML output (which suppresses -v). Use the command line paramter -r to also recurse into any subdirectories.
 
 Execute
 
