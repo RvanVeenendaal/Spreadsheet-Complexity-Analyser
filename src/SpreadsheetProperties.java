@@ -5,7 +5,7 @@ public class SpreadsheetProperties {
 	private int iDefinedNames = 0; // defined names present in spreadsheet
 	private int iComments = 0; // comments present in spreadsheet
 	private int iWorkSheets = 0; // worksheets present in spreadsheet
-	private boolean bVBAMacros = false; // Indicates if a workbook 'seems to have (had)' vba macros
+	private int iHasVBAMacros = 0; // spreadsheet has (had) vba macros: 0 = false, 1 or greater = true
 	private int iShapes= 0; // shapes present in spreadsheet
 	private int iDates = 0; // dates present in spreadsheet
 	private int iCellsUsed = 0; // cells used in spreadsheet
@@ -13,7 +13,11 @@ public class SpreadsheetProperties {
 	private int iCellStyles = 0; // cell styles used in spreadsheet
 	private int iColors = 0; // colours used in spreadsheet
 	private int iExternalLinks = 0; // external links present in formulas (!) in spreadsheet
-	private double iFileSize = 0; // size of file (in kilobyte)
+	private double iFileSizeKb = 0; // size of file (in kilobyte)
+	private String sLastModified = ""; // last modified time (if available) 
+	private String sLastAccessed = ""; // last accessed time (if available)
+	private String sCreation = ""; // creation time (if available)
+	private int iHasRevisionHistory = 0; // 1 = spreadsheet has revision history on, 0 = off
 
 	public int getFormulas() {
 		return iFormulas;
@@ -55,12 +59,12 @@ public class SpreadsheetProperties {
 		this.iWorkSheets = iWorkSheets;
 	}
 
-	public boolean getHasVBAMacro() {
-		return bVBAMacros;
+	public int getHasVBAMacros() {
+		return iHasVBAMacros;
 	}
 
-	public void setHasVBAMacros(boolean bVBAMacros) {
-		this.bVBAMacros = bVBAMacros;
+	public void setHasVBAMacros(int iHasVBAMacros) {
+		this.iHasVBAMacros = iHasVBAMacros;
 	}
 
 	public int getShapes() {
@@ -119,11 +123,43 @@ public class SpreadsheetProperties {
 		this.iExternalLinks = iExternalLinks;
 	}
 
-	public double getFileSize() {
-		return iFileSize;
+	public double getFileSizeKb() {
+		return iFileSizeKb;
 	}
 
-	public void setFileSize(double iFileSize) {
-		this.iFileSize = iFileSize;
+	public void setFileSizeKb(double iFileSizeKb) {
+		this.iFileSizeKb = iFileSizeKb;
+	}
+
+	public String getLastModified() {
+		return sLastModified;
+	}
+
+	public void setLastModified(String sLastModified) {
+		this.sLastModified = sLastModified;
+	}
+
+	public String getLastAccessed() {
+		return sLastAccessed;
+	}
+
+	public void setLastAccessed(String sLastAccessed) {
+		this.sLastAccessed = sLastAccessed;
+	}
+
+	public String getCreation() {
+		return sCreation;
+	}
+
+	public void setCreation(String sCreation) {
+		this.sCreation = sCreation;
+	}
+
+	public int getHasRevisionHistory() {
+		return iHasRevisionHistory;
+	}
+
+	public void setHasRevisionHistory(int iHasRevisionHistory) {
+		this.iHasRevisionHistory = iHasRevisionHistory;
 	}
 }
