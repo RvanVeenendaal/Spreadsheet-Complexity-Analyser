@@ -21,6 +21,7 @@ import java.nio.file.attribute.FileTime;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -84,13 +85,29 @@ public class ApachePOIExcelReader {
 	        Map<String, String> macros = null;
 	        reader = new VBAMacroReader(excelFile);
 	        macros = reader.readMacros();
+	        Iterator<Entry<String, String>> macroIterator = macros.entrySet().iterator();
+	        while(macroIterator.hasNext()) {
+	        	continueWhile:
+	        	{
+		        	Map.Entry<String, String> macroEntry = macroIterator.next();
+		        	String macro = macroEntry.getValue();
+		        	String lines[] = macro.split("[\\n\\r]+");
+		        	for (String line: lines){
+		        		// Count only macros that actually have code: lines not starting with metadata key 'Attribute' 
+		        		if (!line.matches("Attribute.*")) {
+		        			sp.setHasVBAMacros(sp.getHasVBAMacros() + 1);
+		        			break continueWhile;
+		        		}
+		        	}
+	        	}
+	        }
 	        /* macros contains modules that might be empty
 	         * macros also contains Excel objects like Sheet1 and ThisWorkbook
 	         * therefore, we cannot be sure that there actually is a vba macro
 	        */
-	        if (macros.size() > 0) { // due to Sheet1 and ThisWorkbook, perhaps > 2 ?
-	            sp.setHasVBAMacros(1);
-	        }            
+//	        if (macros.size() > 0) { // due to Sheet1 and ThisWorkbook, perhaps > 2 ?
+//	            sp.setHasVBAMacros(1);
+//	        }            
 	        reader.close();
 		} catch (FileNotFoundException e) {
 		    e.printStackTrace();
@@ -236,7 +253,7 @@ public class ApachePOIExcelReader {
 	    	result = "simple/static";
 	    }    	
     	if (xml_out) {
-	        System.out.println("<spreadsheetComplexityResult>");
+	        System.out.println("<spreadsheetComplexityAnalyserResult>");
 	        System.out.println("\t<file>" + file.getAbsoluteFile() + "</file>");
 //	        System.out.println("\t<result>" + result + "</result>");
 	        System.out.println("\t<fileSize>" + sp.getFileSizeKb() + " kB</fileSize>");
@@ -257,7 +274,7 @@ public class ApachePOIExcelReader {
 	        System.out.println("\t<externalLinks>" + sp.getExternalLinks() + "</externalLinks>");
 	        System.out.println("\t<revisionHistory>" + sp.getHasRevisionHistory() + "</revisionHistory>");
 	        System.out.println("\t<tentativeAssessment>" + result + "</tentativeAssessment>");
-	        System.out.println("</spreadsheetComplexityResult>");
+	        System.out.println("</spreadsheetComplexityAnalyserResult>");
     	}
     	else if (verbose) {
     		//    	    System.out.println("Result: " + result);
@@ -409,7 +426,7 @@ public class ApachePOIExcelReader {
     	Iterator<File> fileIterator = files.iterator();
     	if (xml_out) {
     		System.out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-    		System.out.println("<spreadsheetComplexityResults>");
+    		System.out.println("<spreadsheetComplexityAnalyserResults xmlns='http://openpreservation.org/spreadsheetComplexityAnalyser' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='SpreadsheetComplexityAnalyser.xsd'>");
     	}
     	else if (verbose) {
     		System.out.println("Spreadsheet complexity analyser results:");
@@ -432,8 +449,8 @@ public class ApachePOIExcelReader {
             }
     	}
     	if (xml_out) {
-	        System.out.println("<legend>Legend: -1 = not supported (e.g. external links extraction for XLS). 0 or more = number of occurrences. At macros and revision history, nonzero means they are present.");
-    		System.out.println("</spreadsheetComplexityResults>");
+	        System.out.println("<legend>Legend: -1 = not supported (e.g. external links extraction for XLS). 0 or more = number of occurrences. At macros and revision history, nonzero means they are present.</legend>");
+    		System.out.println("</spreadsheetComplexityAnalyserResults>");
     	}
     	else if (verbose) {
 	        System.out.println("Legend:");
