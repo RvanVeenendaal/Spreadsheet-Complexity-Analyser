@@ -1,0 +1,35 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://openpreservation.org/spreadsheetComplexityAnalyser" xmlns='http://openpreservation.org/spreadsheetComplexityAnalyser SpreadsheetComplexityAnalyser.xsd' xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="spreadsheetComplexityAnalyserResults">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="spreadsheetComplexityAnalyserResult" maxOccurs="unbounded" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element type="xs:string" name="file"/>
+              <xs:element type="xs:string" name="fileSize"/>
+              <xs:element type="xs:dateTime" name="created"/>
+              <xs:element type="xs:dateTime" name="lastAccessed"/>
+              <xs:element type="xs:dateTime" name="lastModified"/>
+              <xs:element type="xs:byte" name="worksheets"/>
+              <xs:element type="xs:byte" name="fonts"/>
+              <xs:element type="xs:byte" name="definedNames"/>
+              <xs:element type="xs:byte" name="cellStyles"/>
+              <xs:element type="xs:int" name="formulas"/>
+              <xs:element type="xs:byte" name="hyperlinks"/>
+              <xs:element type="xs:byte" name="comments"/>
+              <xs:element type="xs:byte" name="vbaMacros"/>
+              <xs:element type="xs:byte" name="shapes"/>
+              <xs:element type="xs:int" name="dates"/>
+              <xs:element type="xs:int" name="usedCells"/>
+              <xs:element type="xs:byte" name="externalLinks"/>
+              <xs:element type="xs:byte" name="revisionHistory"/>
+              <xs:element type="xs:string" name="tentativeAssessment"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element type="xs:string" name="legend"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
+
