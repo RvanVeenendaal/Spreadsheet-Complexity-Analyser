@@ -22,7 +22,7 @@ We defined 'simple' spreadsheet as those that 'just' contain some rows and colum
 
 The main reason for making this distinction was (cost-efficiency w.r.t.) normalisation and preservation: our hypothesis was that simple spreadsheets can be normalised to and preserved as e.g. PDF(/A), while more complex spreadsheets require a spreadsheet-specific file format. There is a lot of knowledge of and expertise in working with PDF(/A) in archives. Being able to preserve some percentage of spreadsheets as PDF(/A) might be cost-efficient. Our work was also meant to result in choosing the best suited spreadsheet-specific file format for the complex spreadsheets.
 
-### Please note: this hypothesis was rejected. Please preserve spreadsheets in spreadsheet formats. Too many properties are lost when you normalise/convert to non-spreadsheet specific file formats. Our investigation helped confirm this, and will impact on e.g. Danish and Dutch government preferred file formats norms.
+### Please note: this hypothesis was rejected. Please preserve spreadsheets in spreadsheet formats. Too many properties are lost when you normalise/convert to non-spreadsheet specific file formats. Our investigation helped confirm this, and will impact on e.g. Danish and Dutch government preferred file formats norms. See our final report for more information: https://zenodo.org/record/5468116.
 
 In order to distinguish between these two types of spreadsheets, we needed to be able to extract information about cells, sheets, formulas, named objects, macros, etc. Property extraction tools like JHOVE, FITS and Apache Tika don't extract that kind of information, and that led to the development of the Spreadsheet Complexity Analyser.
 ## Technology used
