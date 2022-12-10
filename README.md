@@ -15,6 +15,12 @@ java -jar SpreadsheetComplexityAnalyser.jar
 
 without any paramters to get usage information.
 
+SCA currently extracts:
+- File: file size, creation date/time, last accessed, last modified
+- Workbook: #worksheets, #fonts, #defined names, #cell styles, #external links, VBA macros (present or not, tentative) and revision history (credits: Rauno Umborg) 
+- Per work sheet: #formulas, #hyperlinks, #cellComments, #shapes, #dates, #cells used, #physical cells used, #rows used, #physical rows used, #tables, #pivot tables and #charts.
+
+
 ## Motivation
 The Open Preservation Foundation Archives Interest Group investigated the significant properties of spreadsheets. We wanted to find the best suited (spreadsheet) file format for preserving (significant properties of) spreadsheets. As part of this study, we wanted to be able to distinguish between 'simple/static' spreadsheets and 'complex/dynamic' spreadsheets.
 
