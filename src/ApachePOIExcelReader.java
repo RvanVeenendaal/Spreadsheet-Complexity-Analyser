@@ -1,12 +1,13 @@
+// Apache POI-XSSF and POI-HSSF used to read (Excel) spreadsheets
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.hssf.usermodel.HSSFChart;
 import org.apache.poi.hssf.usermodel.HSSFPatriarch;
-import org.apache.poi.hssf.usermodel.HSSFShape;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.poifs.macros.VBAMacroReader;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFDrawing;
-import org.apache.poi.xssf.usermodel.XSSFShape;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
+// Other helper imports
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -34,280 +35,276 @@ import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 
 public class ApachePOIExcelReader {
-    private static boolean verbose = false;
+	// Configuration 
+	private static boolean verbose = false;
     private static boolean xml_out = false;
     private static boolean recursive = false;
     private static boolean config = false;
     private static boolean help = false;
+    // Container for properties
     private static SpreadsheetProperties sp;
-    private static int worksheetsThreshold = 1;
-    private static int fontsThreshold = 1;
-    private static int definedNamesThreshold = 1;
-    private static int cellStylesThreshold = 1;
-    private static int formulasThreshold = 0;
-    private static int hyperlinksThreshold = 0;
-    private static int commentsThreshold = 0;
-    private static int vbaMacrosThreshold = 0;
-    private static int shapesThreshold = 0;
-    private static int datesThreshold = 0;
-    private static int cellsUsedThreshold = 1000;
-    private static int externalLinksThreshold = 0;
-
-    /*
-    * Checks if binary file contains file with path and name of
-    * x1/revisions/revisionHeaders.xml
-    * Input should be XLSX file
-    * Author: Rauno Umborg (rauno.umborg@ra.ee)
-    */
-    private static void findRevisionHeaders(File f){
-        // Load as binary:
-        byte[] bytes = new byte[0];
-        try {
-            bytes = Files.readAllBytes(f.toPath());
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ;
-        }
-        // Convert to string using UTF-8
-        String asText = new String(bytes, StandardCharsets.UTF_8);
-        // Find "xl/revisions/revisionHeaders.xml"
-        int t = asText.indexOf("xl/revisions/revisionHeaders.xml");
-        // If file exists, remember it.
-        if (t > 0) {
-        	sp.setHasRevisionHistory(1);
-        }
-    }
-
-    private static void findVBAMacros(File file) {
-		try {
-			FileInputStream excelFile = new FileInputStream(file);
-	        VBAMacroReader reader = null;
-	        Map<String, String> macros = null;
-	        reader = new VBAMacroReader(excelFile);
-	        macros = reader.readMacros();
-	        Iterator<Entry<String, String>> macroIterator = macros.entrySet().iterator();
-	        while(macroIterator.hasNext()) {
-	        	continueWhile:
-	        	{
-		        	Map.Entry<String, String> macroEntry = macroIterator.next();
-		        	String macro = macroEntry.getValue();
-		        	String lines[] = macro.split("[\\n\\r]+");
-		        	for (String line: lines){
-		        		// Count only macros that actually have code: lines not starting with metadata key 'Attribute' 
-		        		if (!line.matches("Attribute.*")) {
-		        			sp.setHasVBAMacros(sp.getHasVBAMacros() + 1);
-		        			break continueWhile;
-		        		}
-		        	}
-	        	}
-	        }
-	        /* macros contains modules that might be empty
-	         * macros also contains Excel objects like Sheet1 and ThisWorkbook
-	         * therefore, we cannot be sure that there actually is a vba macro
-	        */
-//	        if (macros.size() > 0) { // due to Sheet1 and ThisWorkbook, perhaps > 2 ?
-//	            sp.setHasVBAMacros(1);
-//	        }            
-	        reader.close();
-		} catch (FileNotFoundException e) {
-		    e.printStackTrace();
-		} catch (IOException e) {
-		    e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			// no VBA project found
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-    }    
+    // Workbook level properties
+    private static int iFontsThreshold = 1;
+    private static int iDefinedNamesThreshold = 1;
+    private static int iCellStylesThreshold = 1;
+    private static int iVBAMacrosThreshold = 0;
+    private static int iExternalLinksThreshold = 0;
+    private static int iHasRevisionHistoryThreshold = 0;
+    // Worksheet level properties
+    private static int iPivotTablesThreshold = 0;
+    private static int iTablesThreshold = 0;
+    private static int iRowsUsedThreshold = 1000;
+    private static int iPhysicalRowsUsedThreshold = 1000;
+    private static int iChartsThreshold = 0;
+    private static int iWorksheetsThreshold = 1;
+    private static int iFormulasThreshold = 0;
+    private static int iHyperlinksThreshold = 0;
+    private static int iCellCommentsThreshold = 0;
+    private static int iShapesThreshold = 0;
+    private static int iDatesThreshold = 0;
+    private static int iCellsUsedThreshold = 1000;
+    private static int iPhysicalCellsUsedThreshold = 1000;
     
     public static boolean processFile(File file, boolean isXSSF) {
+    	System.err.println("Processing: "+ file);
     	boolean skip = false;	// skip this file is it is an unsupported Excel version
     	try {
     		if(file.exists()) { 
     			Path path = Paths.get(file.getCanonicalPath());
     			BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class);
+    			// Get file information
     			double sizeInKb = attributes.size() / 1024;
     			FileTime creationTime = attributes.creationTime();
     			FileTime accessTime = attributes.lastAccessTime();
     			FileTime modifyTime = attributes.lastModifiedTime();
-    			sp.setFileSizeKb(sizeInKb);
-    			sp.setLastModified(modifyTime.toString());
-    	        sp.setLastAccessed(accessTime.toString());
-    	        sp.setCreation(creationTime.toString());
+    			sp.getFileProperties().setdFileSizeKb(sizeInKb);
+    			sp.getFileProperties().setsLastModified(modifyTime.toString());
+    	        sp.getFileProperties().setsLastAccessed(accessTime.toString());
+    	        sp.getFileProperties().setsCreation(creationTime.toString());
     		}
     		FileInputStream excelFile = new FileInputStream(file);
-	        Workbook workbook;
-	        workbook = WorkbookFactory.create(excelFile);
-	        sp.setDefinedNames(workbook.getNumberOfNames());
-	        sp.setWorkSheets(workbook.getNumberOfSheets());
-	        sp.setFonts(workbook.getNumberOfFonts());
-	        sp.setCellStyles(workbook.getNumCellStyles());
+    		// Get workbook level information 
+	        Workbook workbook = WorkbookFactory.create(excelFile);
+	        sp.getWorkbookProperties().setiDefinedNames(workbook.getNumberOfNames());
+	        sp.getWorkbookProperties().setiWorkSheets(workbook.getNumberOfSheets());
+	        sp.getWorkbookProperties().setiFonts(workbook.getNumberOfFonts());
+	        sp.getWorkbookProperties().setiCellStyles(workbook.getNumCellStyles());
 	        if (isXSSF) {
 		        XSSFWorkbook xssfWorkbook = (XSSFWorkbook) workbook;
-		        sp.setExternalLinks(xssfWorkbook.getExternalLinksTable().size());
+		        sp.getWorkbookProperties().setiExternalLinks(xssfWorkbook.getExternalLinksTable().size());
 	        }
 	        else {
-	        	sp.setExternalLinks(-1); // not available for hssf/xls
+	        	sp.getWorkbookProperties().setiExternalLinks(-1); // -1 signals not available (for hssf/xls)
 	        }
 	        Iterator<Sheet> sheetIterator = workbook.iterator();
 	        while (sheetIterator.hasNext()) {
 	        	Sheet currentSheet = sheetIterator.next();
+	        	WorksheetProperties worksheetProperties = new WorksheetProperties();
+	        	// Get (work)sheet level information
 	        	if (isXSSF) {
 	        		XSSFSheet sheet = (XSSFSheet) currentSheet;
+	        		worksheetProperties.setsSheetName(sheet.getSheetName());
+	        		worksheetProperties.setiPivotTables(sheet.getPivotTables().size());
+	        		worksheetProperties.setiTables(sheet.getTables().size());
 	        		XSSFDrawing drawing = sheet.getDrawingPatriarch();
 	        		if (drawing != null) {
-		        		Iterator<XSSFShape> shapeIterator = drawing.iterator();
-		        		int i = 0;
-		        		while (shapeIterator.hasNext()){
-//		        			XSSFShape shape = shapeIterator.next();
-		        			shapeIterator.next();
-// uncomment for testing 	System.out.println(sheet.getSheetName() + ", " + shape.getShapeName() + ", " + shape.getClass());
-		        			i++;
-		        		}
-		        		sp.setShapes(sp.getShapes() + i);	        		
+		        		worksheetProperties.setiShapes(drawing.getShapes().size());
+		        		worksheetProperties.setiCharts(drawing.getCharts().size());
 		        	}
 	        	}
 	        	else {
 	        		HSSFSheet sheet = (HSSFSheet) currentSheet;
-	        		HSSFPatriarch drawing = (HSSFPatriarch) sheet.getDrawingPatriarch();
+	        		worksheetProperties.setsSheetName(sheet.getSheetName());
+	        		worksheetProperties.setiPivotTables(-1);		// HSSF does not support pivot tables (2022-11-5)
+	        		worksheetProperties.setiTables(-1);				// HSSF does not (seem to) support tables (2022-11-5)
+	        		worksheetProperties.setiCharts(HSSFChart.getSheetCharts(sheet).length);
+        		HSSFPatriarch drawing = (HSSFPatriarch) sheet.getDrawingPatriarch();
 	        		if (drawing != null) {
-		        		Iterator<HSSFShape> shapeIterator = drawing.iterator();
-		        		int i = 0;
-		        		while (shapeIterator.hasNext()){
-//		        			HSSFShape shape = shapeIterator.next();
-		        			shapeIterator.next();
-// uncomment for testing	System.out.println(sheet.getSheetName() + ", " + shape.getShapeName() + ", " + shape.getClass());
-		        			i++;
-		        		}
-		        		sp.setShapes(sp.getShapes() + i);	        		
+	        			// System.err.println("Number of children of sheet " + sheet.getSheetName() + ": " + drawing.countOfAllChildren());
+		        		worksheetProperties.setiShapes(worksheetProperties.getiShapes() + drawing.countOfAllChildren());        		
 		        	}
 	        	}
+	        	worksheetProperties.setiRowsUsed(worksheetProperties.getiRowsUsed() + currentSheet.getLastRowNum());
+	        	worksheetProperties.setiPhysicallyUsedRows(worksheetProperties.getiPhysicallyUsedRows() + currentSheet.getPhysicalNumberOfRows());
+
+	        	// There is no interface for get(PhysicalNumberOf)Columns 
+	        	// (but you could use the number of (physical) cells per row)
+
 	            Iterator<Row> rowIterator = currentSheet.iterator();
 	            while (rowIterator.hasNext()) {
 	                Row currentRow = rowIterator.next();
-		        	sp.setCellsUsed(sp.getCellsUsed() + currentRow.getPhysicalNumberOfCells());
-	                Iterator<Cell> cellIterator = currentRow.iterator();
+	                worksheetProperties.setiCellsUsed(worksheetProperties.getiCellsUsed() + currentRow.getLastCellNum());
+	                worksheetProperties.setiPhysicallyUsedCells(worksheetProperties.getiPhysicallyUsedCells() + currentRow.getPhysicalNumberOfCells());
+		        	Iterator<Cell> cellIterator = currentRow.iterator();
 	                while (cellIterator.hasNext()) {
 	                    Cell currentCell = cellIterator.next();
-	                    if (currentCell.getCellTypeEnum() == CellType.FORMULA) {
-	                        sp.setFormulas(sp.getFormulas() + 1);
+	        			//System.err.println("Cell at row " + currentCell.getRowIndex() + " and column " + currentCell.getColumnIndex() + ": " +currentCell.getCellType());
+	                    if (currentCell.getCellType() == CellType.FORMULA) {
+	                    	worksheetProperties.setiFormulas(worksheetProperties.getiFormulas() + 1);
 	                    }
-	                    if (currentCell.getCellTypeEnum() == CellType.NUMERIC && DateUtil.isCellDateFormatted(currentCell)) {
-	                        sp.setDates(sp.getDates() + 1);
+	                    if (currentCell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(currentCell)) {
+	                    	worksheetProperties.setiDates(worksheetProperties.getiDates() + 1);
 	                    }
 	                    if(currentCell.getHyperlink() != null) {
-	                    	sp.setHyperlinks(sp.getHyperlinks() + 1);                        	
+	                    	worksheetProperties.setiHyperlinks(worksheetProperties.getiHyperlinks() + 1);                        	
 	                    }
 	                    if (currentCell.getCellComment() != null) {
-	                    	sp.setComments(sp.getComments() + 1);
+	                    	worksheetProperties.setiCellComments(worksheetProperties.getiCellComments() + 1);
 	                    }
 	                }
-	            }            	
+	            }
+	        	sp.getWorksheetPropertiesList().add(worksheetProperties);
 	        }
 	        workbook.close();
 	        excelFile.close();
-    	} catch (org.apache.poi.openxml4j.exceptions.InvalidFormatException e) {
+    	} catch (org.apache.poi.UnsupportedFileFormatException e) {
     		System.out.println("Skipping " + file.getName() + ". This file's format version is not supported.");
     		skip = true;
 	    } catch (FileNotFoundException e) {
 	    	System.out.println("Skipping " + file.getName() + ". Is this an Excel lock file?");
 	    	skip = true;
 	    } catch (IOException e) {
-	        e.printStackTrace();
+	    	System.out.println("Skipping " + file.getName() + ". Error reading (this type of Excel) file.");
+	    	skip = true;
 	    } catch (Exception e) {
+	    	System.out.println("Skipping " + file.getName() + ". Exception");
 	    	e.printStackTrace();
+	    	skip = true;
 	    }
     	if (!skip) {
     		if (isXSSF) {
     			findRevisionHeaders(file); // Only works for XLSX-family
     		}
     		else {
-    			sp.setHasRevisionHistory(-1); // Not supported for XLSX-family
+    			sp.getWorkbookProperties().setiHasRevisionHistory(-1); // Not supported for XLSX-family
     		}
     		findVBAMacros(file);
     	}
     	return skip;
 	}
 
-    
 // To do: read threshold values for result calculation from config.ini file (or as CLI parameters?)    
 // and use those values for calculating and outputting result simple/static or complex/dynamic
 // but only when user asks for result calculation via CLI parameter
     public static void outputResults(File file) {   
-		String result = null;	    
-		if (sp.getWorkSheets() > worksheetsThreshold ||
-	    		sp.getFonts() > fontsThreshold ||
-	    		sp.getDefinedNames() > definedNamesThreshold ||
-	    		sp.getCellStyles() > cellStylesThreshold ||
-	    		sp.getFormulas() > formulasThreshold ||
-	    		sp.getHyperlinks() > hyperlinksThreshold ||
-	    		sp.getComments() > commentsThreshold ||
-	    		sp.getHasVBAMacros() > vbaMacrosThreshold ||
-	    		sp.getShapes() > shapesThreshold ||
-	    		sp.getDates() > datesThreshold ||
-	    		sp.getCellsUsed() > cellsUsedThreshold ||
-				sp.getExternalLinks() > externalLinksThreshold) {
-	    	result = "complex/dynamic";
-	    }
-	    else {
-	    	result = "simple/static";
-	    }    	
+		String result = "simple/static";
+		// If ANY workbook value exceeds the threshold, it is considered complex/dynamic
+		if (sp.getWorkbookProperties().getiWorkSheets() > iWorksheetsThreshold ||
+	    		sp.getWorkbookProperties().getiFonts() > iFontsThreshold ||
+	    		sp.getWorkbookProperties().getiDefinedNames() > iDefinedNamesThreshold ||
+	    		sp.getWorkbookProperties().getiCellStyles() > iCellStylesThreshold ||
+	    		sp.getWorkbookProperties().getiVBAMacros() > iVBAMacrosThreshold ||
+	    		sp.getWorkbookProperties().getiExternalLinks() > iExternalLinksThreshold ||
+	    		sp.getWorkbookProperties().getiHasRevisionHistory() > iHasRevisionHistoryThreshold
+	    ) {
+			result = "complex/dynamic";			
+		}
+		// If ANY worksheet has a value that exceeds the threshold, it is considered complex/dynamic
+		for (WorksheetProperties worksheetProperties : sp.getWorksheetPropertiesList()) {
+			if (worksheetProperties.getiFormulas() > iFormulasThreshold ||
+					worksheetProperties.getiHyperlinks() > iHyperlinksThreshold ||
+					worksheetProperties.getiCellComments() > iCellCommentsThreshold ||
+					worksheetProperties.getiShapes() > iShapesThreshold ||
+					worksheetProperties.getiDates() > iDatesThreshold ||
+					worksheetProperties.getiCellsUsed() > iCellsUsedThreshold ||
+					worksheetProperties.getiPhysicallyUsedCells() > iPhysicalCellsUsedThreshold ||
+					worksheetProperties.getiPivotTables() > iPivotTablesThreshold ||
+					worksheetProperties.getiTables() > iTablesThreshold ||
+					worksheetProperties.getiCharts() > iChartsThreshold ||
+					worksheetProperties.getiRowsUsed() > iRowsUsedThreshold ||
+					worksheetProperties.getiPhysicallyUsedRows() > iPhysicalRowsUsedThreshold
+			) {
+				result = "complex/dynamic";				
+			}
+		}
     	if (xml_out) {
-	        System.out.println("<spreadsheetComplexityAnalyserResult>");
-	        System.out.println("\t<file>" + file.getAbsoluteFile() + "</file>");
-//	        System.out.println("\t<result>" + result + "</result>");
-	        System.out.println("\t<fileSize>" + sp.getFileSizeKb() + " kB</fileSize>");
-	        System.out.println("\t<created>" + sp.getCreation() + "</created>");
-	        System.out.println("\t<lastAccessed>" + sp.getLastAccessed() + "</lastAccessed>");	        
-	        System.out.println("\t<lastModified>" + sp.getLastModified() + "</lastModified>");
-	        System.out.println("\t<worksheets>" + sp.getWorkSheets() + "</worksheets>");
-	        System.out.println("\t<fonts>" + sp.getFonts() + "</fonts>");
-	        System.out.println("\t<definedNames>" + sp.getDefinedNames() + "</definedNames>");
-	        System.out.println("\t<cellStyles>" + sp.getCellStyles() + "</cellStyles>");
-	        System.out.println("\t<formulas>" + sp.getFormulas() + "</formulas>");
-	        System.out.println("\t<hyperlinks>" + sp.getHyperlinks() + "</hyperlinks>");
-	        System.out.println("\t<comments>" + sp.getComments() + "</comments>");
-	        System.out.println("\t<vbaMacros>" + sp.getHasVBAMacros() + "</vbaMacros>");
-	        System.out.println("\t<shapes>" + sp.getShapes() + "</shapes>");
-	        System.out.println("\t<dates>" + sp.getDates() + "</dates>");
-	        System.out.println("\t<usedCells>" + sp.getCellsUsed() + "</usedCells>");
-	        System.out.println("\t<externalLinks>" + sp.getExternalLinks() + "</externalLinks>");
-	        System.out.println("\t<revisionHistory>" + sp.getHasRevisionHistory() + "</revisionHistory>");
-	        System.out.println("\t<tentativeAssessment>" + result + "</tentativeAssessment>");
-	        System.out.println("</spreadsheetComplexityAnalyserResult>");
+	        System.out.println("\t<spreadsheetComplexityAnalyserResult>");
+	        System.out.println("\t\t<file name=\"" + file.getAbsoluteFile() + "\">");
+	        System.out.println("\t\t\t<fileSize>" + sp.getFileProperties().getdFileSizeKb() + " kB</fileSize>");
+	        System.out.println("\t\t\t<created>" + sp.getFileProperties().getsCreation() + "</created>");
+	        System.out.println("\t\t\t<lastAccessed>" + sp.getFileProperties().getsLastAccessed() + "</lastAccessed>");	        
+	        System.out.println("\t\t\t<lastModified>" + sp.getFileProperties().getsLastModified() + "</lastModified>");
+	        System.out.println("\t\t</file>");
+	        System.out.println("\t\t<workbook>");
+	        System.out.println("\t\t\t<worksheets>" + sp.getWorksheetPropertiesList().size() + "</worksheets>");
+	        System.out.println("\t\t\t<fonts>" + sp.getWorkbookProperties().getiFonts() + "</fonts>");
+	        System.out.println("\t\t\t<definedNames>" + sp.getWorkbookProperties().getiDefinedNames() + "</definedNames>");
+	        System.out.println("\t\t\t<cellStyles>" + sp.getWorkbookProperties().getiCellStyles() + "</cellStyles>");
+	        System.out.println("\t\t\t<externalLinks>" + sp.getWorkbookProperties().getiExternalLinks() + "</externalLinks>");
+	        System.out.println("\t\t\t<revisionHistory>" + sp.getWorkbookProperties().getiHasRevisionHistory() + "</revisionHistory>");
+	        System.out.println("\t\t\t<vbaMacros>" + sp.getWorkbookProperties().getiVBAMacros() + "</vbaMacros>");
+	        System.out.println("\t\t\t<worksheets>");
     	}
     	else if (verbose) {
-    		//    	    System.out.println("Result: " + result);
-    		System.out.println("File: " + file.getAbsoluteFile());
-    		System.out.println("\tsize:\t\t\t" + sp.getFileSizeKb() + " kB"); 
-    		System.out.println("\tcreated:\t\t" + sp.getCreation());
-    		System.out.println("\tlast accessed:\t\t" + sp.getLastAccessed());
-    		System.out.println("\tlast modified:\t\t" + sp.getLastModified());
-	        System.out.println("\tworksheets:\t\t" + sp.getWorkSheets());
-	        System.out.println("\tfonts:\t\t\t" + sp.getFonts());
-	        System.out.println("\tdefined names:\t\t" + sp.getDefinedNames());
-	        System.out.println("\tcell styles:\t\t" + sp.getCellStyles()); 
-	        System.out.println("\tformulas:\t\t" + sp.getFormulas());
-	        System.out.println("\thyperlinks:\t\t" + sp.getHyperlinks());
-	        System.out.println("\tcomments:\t\t" + sp.getComments());
-	        System.out.println("\tvba macros:\t\t" + sp.getHasVBAMacros());
-	        System.out.println("\tshapes:\t\t\t" + sp.getShapes());
-	        System.out.println("\tdates:\t\t\t" + sp.getDates());
-	        System.out.println("\tcells used:\t\t" + sp.getCellsUsed());
-	        System.out.println("\texternal links:\t\t" + sp.getExternalLinks());
-	        System.out.println("\trevision history:\t" + sp.getHasRevisionHistory());
-	        System.out.println("\ttentative assessment:\t" + result);
+    		System.out.println("spreadsheet:");
+    		System.out.println("\tfile:");
+    		System.out.println("\t\tname:\t\t\t" + file.getAbsoluteFile()); 
+    		System.out.println("\t\tsize:\t\t\t" + sp.getFileProperties().getdFileSizeKb() + " kB"); 
+    		System.out.println("\t\tcreated:\t\t" + sp.getFileProperties().getsCreation());
+    		System.out.println("\t\tlast accessed:\t\t" + sp.getFileProperties().getsLastAccessed());
+    		System.out.println("\t\tlast modified:\t\t" + sp.getFileProperties().getsLastModified());
+    		System.out.println("\tworkbook:");
+    		System.out.println("\t\tworksheets:\t\t" + sp.getWorkbookProperties().getiWorkSheets());
+	        System.out.println("\t\tfonts:\t\t\t" + sp.getWorkbookProperties().getiFonts());
+	        System.out.println("\t\tdefined names:\t\t" + sp.getWorkbookProperties().getiDefinedNames());
+	        System.out.println("\t\tcell styles:\t\t" + sp.getWorkbookProperties().getiCellStyles());
+	        System.out.println("\t\texternal links:\t\t" + sp.getWorkbookProperties().getiExternalLinks());
+	        System.out.println("\t\trevision history:\t" + sp.getWorkbookProperties().getiHasRevisionHistory());
+	        System.out.println("\t\tvba macros:\t\t" + sp.getWorkbookProperties().getiVBAMacros());
 		}
+		for (WorksheetProperties worksheetProperties : sp.getWorksheetPropertiesList()) {
+			if (xml_out) {
+		        System.out.println("\t\t\t\t<worksheet name=\"" + worksheetProperties.getsSheetName() + "\">");
+   		        System.out.println("\t\t\t\t\t<formulas>" + worksheetProperties.getiFormulas() + "</formulas>");
+		        System.out.println("\t\t\t\t\t<hyperlinks>" + worksheetProperties.getiHyperlinks() + "</hyperlinks>");
+		        System.out.println("\t\t\t\t\t<cellComments>" + worksheetProperties.getiCellComments() + "</cellComments>");
+		        System.out.println("\t\t\t\t\t<shapes>" + worksheetProperties.getiShapes() + "</shapes>");
+		        System.out.println("\t\t\t\t\t<charts>" + worksheetProperties.getiCharts() + "</charts>");
+		        System.out.println("\t\t\t\t\t<pivotTables>" + worksheetProperties.getiPivotTables() + "</pivotTables>");
+		        System.out.println("\t\t\t\t\t<tables>" + worksheetProperties.getiTables() + "</tables>");
+		        System.out.println("\t\t\t\t\t<dates>" + worksheetProperties.getiDates() + "</dates>");
+		        System.out.println("\t\t\t\t\t<usedCells>" + worksheetProperties.getiCellsUsed() + "</usedCells>");
+		        System.out.println("\t\t\t\t\t<physicallyUsedCells>" + worksheetProperties.getiPhysicallyUsedCells() + "</physicallyUsedCells>");
+		        System.out.println("\t\t\t\t\t<usedRows>" + worksheetProperties.getiRowsUsed() + "</usedRows>");
+		        System.out.println("\t\t\t\t\t<physicallyUsedRows>" + worksheetProperties.getiPhysicallyUsedRows() + "</physicallyUsedRows>");
+		        System.out.println("\t\t\t\t</worksheet>");
+	        }
+			else if (verbose) {
+				System.out.println("\t\tworksheet:");
+				System.out.println("\t\t\tname:\t\t\t" + worksheetProperties.getsSheetName());
+		        System.out.println("\t\t\tformulas:\t\t" + worksheetProperties.getiFormulas());
+		        System.out.println("\t\t\thyperlinks:\t\t" + worksheetProperties.getiHyperlinks());
+		        System.out.println("\t\t\tcellComments:\t\t" + worksheetProperties.getiCellComments());
+		        System.out.println("\t\t\tshapes:\t\t\t" + worksheetProperties.getiShapes());
+		        System.out.println("\t\t\tcharts:\t\t\t" + worksheetProperties.getiCharts());
+		        System.out.println("\t\t\tpivotTables:\t\t" + worksheetProperties.getiPivotTables());
+		        System.out.println("\t\t\ttables:\t\t\t" + worksheetProperties.getiTables());
+		        System.out.println("\t\t\tdates:\t\t\t" + worksheetProperties.getiDates());
+		        System.out.println("\t\t\tcells used:\t\t" + worksheetProperties.getiCellsUsed());
+		        System.out.println("\t\t\tphysically used cells:\t" + worksheetProperties.getiPhysicallyUsedCells());
+		        System.out.println("\t\t\trows used:\t\t" + worksheetProperties.getiRowsUsed());
+		        System.out.println("\t\t\tphysically used rows:\t" + worksheetProperties.getiPhysicallyUsedRows());
+			}
+		}
+	    if (xml_out) { 
+	        System.out.println("\t\t\t</worksheets>");
+	        System.out.println("\t\t</workbook>");
+	        System.out.println("\t\t<tentativeAssessment>" + result + "</tentativeAssessment>");
+	        System.out.println("\t</spreadsheetComplexityAnalyserResult>");
+    	}
+	    else if (verbose) {
+	        System.out.println("\ttentative assessment:\t\t" + result + "\n");
+	    }
     	else {
-    	    System.out.println("Tentative spreadsheet complexity analyser result for\n\t" + file.getAbsoluteFile() + ": " + result);
+    	    System.out.println("Tentative spreadsheet complexity analyser result for\n\t" + file.getAbsoluteFile() + ": " + result + "\n");
     	}
     }
      
    public static void printHelpAndExit(String message, Options options) {
    		HelpFormatter formatter = new HelpFormatter(); 
-   		System.out.println(message);
 	    formatter.printHelp("java -jar SpreadsheetComplexityAnalyser.jar DIR [-c] [-h] [-r] [-v] [-x]", options);
 	    System.out.println(" DIR\t\t  directory with *.xl[st][xm] and *.xl[akms] files to process.");
+	    System.out.println(message);
 	    System.exit(0);
    }
    
@@ -316,7 +313,7 @@ public class ApachePOIExcelReader {
     */
    public static void readConfigFile(String path) {
 	   Properties prop = new Properties();
-	   String fileName = path + "\\SpreadsheetComplexityAnalyser.config";
+	   String fileName = path + "\\SpreadsheetComplexityAnalyser.cfg";
 	   InputStream is = null;
 	   try {
 	       is = new FileInputStream(fileName);
@@ -330,31 +327,25 @@ public class ApachePOIExcelReader {
 	   }
 	   try {
 		   // Try to read the values first...
-		   int sheett = Integer.parseInt(prop.getProperty("worksheetsThreshold"));
-		   int fontt = Integer.parseInt(prop.getProperty("fontsThreshold"));
-		   int namest = Integer.parseInt(prop.getProperty("definedNamesThreshold"));
-		   int cstylest = Integer.parseInt(prop.getProperty("cellStylesThreshold"));
-		   int formt = Integer.parseInt(prop.getProperty("formulasThreshold"));
-		   int hypert = Integer.parseInt(prop.getProperty("hyperlinksThreshold"));
-		   int commt = Integer.parseInt(prop.getProperty("commentsThreshold"));
-		   int macrot = Integer.parseInt(prop.getProperty("vbaMacrosThreshold"));
-		   int shapet = Integer.parseInt(prop.getProperty("shapesThreshold"));
-		   int datet = Integer.parseInt(prop.getProperty("datesThreshold"));
-		   int cusedt = Integer.parseInt(prop.getProperty("cellsUsedThreshold"));
-		   int extlinkt= Integer.parseInt(prop.getProperty("externalLinksThreshold"));
-		   // ... and only then assign them to object properties to ensure use of default values when error
-		   worksheetsThreshold = sheett;
-		   fontsThreshold = fontt;
-		   definedNamesThreshold = namest;
-		   cellStylesThreshold = cstylest;
-		   formulasThreshold = formt;
-		   hyperlinksThreshold = hypert;
-		   commentsThreshold = commt;
-		   vbaMacrosThreshold = macrot;
-		   shapesThreshold = shapet;
-		   datesThreshold = datet;
-		   cellsUsedThreshold = cusedt;
-		   externalLinksThreshold = extlinkt;		   
+		   iWorksheetsThreshold = Integer.parseInt(prop.getProperty("worksheetsThreshold"));
+		   iFontsThreshold = Integer.parseInt(prop.getProperty("fontsThreshold"));
+		   iDefinedNamesThreshold = Integer.parseInt(prop.getProperty("definedNamesThreshold"));
+		   iCellStylesThreshold = Integer.parseInt(prop.getProperty("cellStylesThreshold"));
+		   iFormulasThreshold = Integer.parseInt(prop.getProperty("formulasThreshold"));
+		   iHyperlinksThreshold = Integer.parseInt(prop.getProperty("hyperlinksThreshold"));
+		   iCellCommentsThreshold = Integer.parseInt(prop.getProperty("cellCommentsThreshold"));
+		   iVBAMacrosThreshold = Integer.parseInt(prop.getProperty("vbaMacrosThreshold"));
+		   iShapesThreshold = Integer.parseInt(prop.getProperty("shapesThreshold"));
+		   iDatesThreshold = Integer.parseInt(prop.getProperty("datesThreshold"));
+		   iCellsUsedThreshold = Integer.parseInt(prop.getProperty("cellsUsedThreshold"));
+		   iPhysicalCellsUsedThreshold = Integer.parseInt(prop.getProperty("physicalCellsUsedThreshold"));
+		   iRowsUsedThreshold = Integer.parseInt(prop.getProperty("rowsUsedThreshold"));
+		   iPhysicalRowsUsedThreshold = Integer.parseInt(prop.getProperty("physicalRowsUsedThreshold"));
+		   iExternalLinksThreshold = Integer.parseInt(prop.getProperty("externalLinksThreshold"));
+		   iHasRevisionHistoryThreshold = Integer.parseInt(prop.getProperty("hasRevisionHistoryThreshold"));
+		   iPivotTablesThreshold = Integer.parseInt(prop.getProperty("pivotTablesThreshold"));
+		   iTablesThreshold = Integer.parseInt(prop.getProperty("tablesThreshold"));
+		   iChartsThreshold = Integer.parseInt(prop.getProperty("chartsThreshold"));
 	   }
 	   catch (Exception e) {
 		   System.out.println("Error reading config properties! Using default values.");
@@ -364,7 +355,6 @@ public class ApachePOIExcelReader {
 /*
  * Spreadsheet Complexity Analyser
  */
-    
     public static void main(String[] args) throws IOException {
     	CommandLineParser parser = new DefaultParser();
     	CommandLine cmd = null;
@@ -372,7 +362,7 @@ public class ApachePOIExcelReader {
     	options.addOption("v", "verbose", false, "verbose output: show number of occurrences of properties in text form" );
     	options.addOption("x", "xml", false, "xml output: show number of occurrences of properties in xml form (suppresses verbose output)");
     	options.addOption("r", "recursive", false, "recurse into subdirectories" );
-    	options.addOption("c", "config", false, "config file: read complexity assessment threshold values from SpreadsheetComplexityAnalyser.config file");
+    	options.addOption("c", "config", false, "config file: read complexity assessment threshold values from SpreadsheetComplexityAnalyser.cfg file");
     	options.addOption("h", "help", false, "help: show SpreadsheetComplexityAnalyser help information (and exit)");
     	try {
     	    // parse the command line arguments
@@ -388,18 +378,21 @@ public class ApachePOIExcelReader {
     	help = cmd.hasOption("help");
 
     	if (help) {
-    		printHelpAndExit("Help information for SpreadsheetComplexityAnalyser\n\n"
+    		printHelpAndExit("\nHelp information for SpreadsheetComplexityAnalyser\n\n"
     				+ "This software extracts values of Excel spreadsheet properties and calculates\n"
     				+ "a tentative spreadsheet complexity assessment based on (default or config\n"
-    				+ "file) threshold values.\n\n"
+    				+ "file) threshold values.\n"
+    				+ "Please note that the worksheet threshold values are used per worksheet:\n"
+    				+ "\tit checks if any worksheet has a value that exceeds the threshold.\n\n"
     				+ "The assessment is 'simple/static' or 'complex/dynamic', but feel free to\n"
     				+ "ignore the assessment and use the extracted property values for other purposes.\n\n"
     				+ "This version can extract values for these properties:\n"
     				+ "file: file size, creation date/time, last accessed, last modified\n"
-    				+ "workbook: worksheets, fonts, defined names, cell styles, external links and\n"
-    				+ "\trevision history"
-    				+ "sheet (totaled up): formulas, hyperlinks, comments, shapes, dates, cells used\n"
-    				+ "vba: nonzero indicates possible vba macros (tentative)\n\n"
+    				+ "workbook: worksheets, fonts, defined names, cell styles, external links, vba macros\n"
+    				+ "\tand revision history\n"
+    				+ "per sheet: formulas, hyperlinks, cellComments, shapes, dates, cells used, physical\n"
+    				+ "\tcells used, rows used, physical rows used, tables, pivot tables and charts.\n"
+    				+ "VBA macros: nonzero indicates possible VBA macros (tentative)\n\n"
     				+ "See the software's GitHub readme for more information:\n"
     				+ "https://github.com/RvanVeenendaal/Spreadsheet-Complexity-Analyser\n", options);
     	}
@@ -436,28 +429,107 @@ public class ApachePOIExcelReader {
         	sp = new SpreadsheetProperties();
             File file = fileIterator.next();
             if (file.getName().toLowerCase().matches("^(?!\\~\\$)(.*)\\.xl[st][xm]$")) { //xlsx xlsm xltx xltm, no ~$ lock files
-            	skipped = processFile(file, true);
-            	if (!skipped) {
-            		outputResults(file);
+            	try {
+                	skipped = processFile(file, true);
+                	if (!skipped) {
+                		outputResults(file);
+                	}            		
             	}
+            	catch (Exception e) {
+            		printHelpAndExit("Error processing file:" + e.getMessage(), options);	
+            	}            	
             }
             else if (file.getName().toLowerCase().matches("^(?!\\~\\$)(.*)\\.xl[akms]$")) { // xla xlk xlm xls, no ~$ lock files
-            	skipped = processFile(file, false);
-            	if (!skipped) {
-            		outputResults(file);
+            	try {
+                	skipped = processFile(file, false);
+                	if (!skipped) {
+                		outputResults(file);
+                	}            		
             	}
+            	catch (Exception e) {
+            		printHelpAndExit("Error processing file:" + e.getMessage(), options);	
+            	}
+            }
+            else {
+            	System.err.println("Unsupported file type: " + file.getName());
             }
     	}
     	if (xml_out) {
-	        System.out.println("<legend>Legend: -1 = not supported (e.g. external links extraction for XLS). 0 or more = number of occurrences. At macros and revision history, nonzero means they are present.</legend>");
+	        System.out.println("<legend>Legend: -1 = not supported (e.g. external links extraction for XLS). 0 or more = number of occurrences. At macros and revision history, nonzero means they are present.");
+	        System.out.println("For more information about the extracted properties, see the Apache POI-HSSF or POI-XSSF at https://poi.apache.org/components/spreadsheet/index.html.</legend>");
     		System.out.println("</spreadsheetComplexityAnalyserResults>");
     	}
     	else if (verbose) {
-	        System.out.println("Legend:");
+	        System.out.println("legend:");
 	        System.out.println("\t-1 = not supported (e.g. external links extraction for XLS).");
 	        System.out.println("\t0 or more = number of occurrences.");
 	        System.out.println("\tAt macros and revision history, nonzero means they are present.");
+	        System.out.println("\tFor more information about the extracted properties, see the Apache POI-HSSF or POI-XSSF at https://poi.apache.org/components/spreadsheet/index.html.");
     	}        
         System.exit(0);
     }
+    
+    /*
+    * Checks if binary file contains file with path and name of
+    * x1/revisions/revisionHeaders.xml
+    * Input should be XLSX file
+    * Author: Rauno Umborg (rauno.umborg@ra.ee)
+    */
+    private static void findRevisionHeaders(File f){
+    	// Load as binary:
+        byte[] bytes = new byte[0];
+        try {
+            bytes = Files.readAllBytes(f.toPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+        // Convert to string using UTF-8
+        String asText = new String(bytes, StandardCharsets.UTF_8);
+        // Find "xl/revisions/revisionHeaders.xml"
+        int t = asText.indexOf("xl/revisions/revisionHeaders.xml");
+        // If file exists, remember it.
+        if (t > 0) {
+        	sp.getWorkbookProperties().setiHasRevisionHistory(1);
+        }
+    }
+
+    private static void findVBAMacros(File file) {
+		try {
+			FileInputStream excelFile = new FileInputStream(file);
+	        VBAMacroReader reader = null;
+	        Map<String, String> macros = null;
+	        reader = new VBAMacroReader(excelFile);
+	        macros = reader.readMacros();
+	        Iterator<Entry<String, String>> macroIterator = macros.entrySet().iterator();
+	        while(macroIterator.hasNext()) {
+	        	continueWhile:
+	        	{
+		        	Map.Entry<String, String> macroEntry = macroIterator.next();
+		        	String macro = macroEntry.getValue();
+		        	String lines[] = macro.split("[\\n\\r]+");
+		        	for (String line: lines){
+		        		// Count only macros that actually have code: lines not starting with metadata key 'Attribute' 
+		        		if (!line.matches("Attribute.*")) {
+		        			sp.getWorkbookProperties().setiVBAMacros(sp.getWorkbookProperties().getiVBAMacros() + 1);
+		        			break continueWhile;
+		        		}
+		        	}
+	        	}
+	        }
+	        reader.close();
+		} 
+		catch (FileNotFoundException e) {
+		    e.printStackTrace();
+		} 
+		catch (IOException e) {
+		    e.printStackTrace();
+		} 
+		catch (IllegalArgumentException e) {
+			// no VBA project found
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+    }    
 }

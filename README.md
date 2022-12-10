@@ -7,7 +7,7 @@ java -jar SpreadsheetComplexityAnalyser.jar DIR
 
 to process *.xl[st][xm] and *.xl[akms] files in DIR (DIR must be a directory).
 
-Use the command line paramter -v for verbose text output. Use the command line parameter -x for verbose XML output (which suppresses -v). Use the command line paramter -r to also recurse into any subdirectories.
+Use the command line parameter -v for verbose text output. Use the command line parameter -x for verbose XML output (which suppresses -v). Use the command line parameter -r to also recurse into any subdirectories. The parameter -h will output help information.
 
 Execute
 
@@ -16,15 +16,17 @@ java -jar SpreadsheetComplexityAnalyser.jar
 without any paramters to get usage information.
 
 ## Motivation
-As AIG, we are studying the significant properties of spreadsheets. We want to find the best suited (spreadsheet) file format for preserving (significant properties of) spreadsheets. As part of this study, we wanted to be able to distinguish between 'simple/static' spreadsheets and 'complex/dynamic' spreadsheets.
+The Open Preservation Foundation Archives Interest Group investigated the significant properties of spreadsheets. We wanted to find the best suited (spreadsheet) file format for preserving (significant properties of) spreadsheets. As part of this study, we wanted to be able to distinguish between 'simple/static' spreadsheets and 'complex/dynamic' spreadsheets.
 
-Simple spreadsheet examples are those that just contain some rows and columns with cells with static values, and e.g. some formatting for pretty-printing. Complex spreadsheet examples are those with macros, formulas, cells referring to cells (on other sheets), named objects, etc. (Yes, we know there will be a lot of grey area spreadsheets.) 
+We defined 'simple' spreadsheet as those that 'just' contain some rows and columns with cells with static values, and e.g. some formatting for pretty-printing. 'Complex' spreadsheet examples are those with macros, formulas, cells referring to cells (on other sheets), named objects, etc. (Yes, we there would be a lot of grey area spreadsheets.)
 
-The main reason for making this distinction is (cost-efficiency w.r.t.) normalisation and preservation: our hypothesis is that simple spreadsheets can be normalised to and preserved as e.g. PDF(/A), while more complex spreadsheets require a spreadsheet-specific file format. There is a lot of knowledge of and expertise in working with PDF(/A) in archives. Being able to preserve some percentage of spreadsheets as PDF(/A) is cost-efficient. Our work should also result in choosing the best suited spreadsheet-specific file format for the complex spreadsheets.
+The main reason for making this distinction was (cost-efficiency w.r.t.) normalisation and preservation: our hypothesis was that simple spreadsheets can be normalised to and preserved as e.g. PDF(/A), while more complex spreadsheets require a spreadsheet-specific file format. There is a lot of knowledge of and expertise in working with PDF(/A) in archives. Being able to preserve some percentage of spreadsheets as PDF(/A) might be cost-efficient. Our work was also meant to result in choosing the best suited spreadsheet-specific file format for the complex spreadsheets.
 
-In order to distinguish between these types of spreadsheets, we need to be able to extract information about cells, sheets, formulas, named objects, macros, etc. Property extraction tools like FITS, JHOVE and Apache Tika don't extract that kind of information, and that led to the development of the Spreadsheet Complexity Analyser.
+### Please note: this hypothesis was rejected. Please preserve spreadsheets in spreadsheet formats. Too many properties are lost when you normalise/convert to non-spreadsheet specific file formats. Our investigation helped confirm this, and will impact on e.g. Danish and Dutch government preferred file formats norms.
+
+In order to distinguish between these two types of spreadsheets, we needed to be able to extract information about cells, sheets, formulas, named objects, macros, etc. Property extraction tools like JHOVE, FITS and Apache Tika don't extract that kind of information, and that led to the development of the Spreadsheet Complexity Analyser.
 ## Technology used
-The Spreadsheet Complexity Analyser is written in Java, and uses Apache POI (HSSF and XSSF) to access the Microsoft Excel spreadsheet formats (xls and xlsx) - which form the bulk of the spreadsheets that we (archives) receive.
+The Spreadsheet Complexity Analyser is written in Java, and uses Apache POI-HSSF and POI-XSSF to access the Microsoft Excel spreadsheet formats (xls and xlsx) - which form the bulk of the spreadsheets that we (archives) receive.
 ## Installation
 The SpreadsheetComplexityAnalyser is available as an executable Java 8 jar file. 
 
@@ -32,7 +34,7 @@ Execute e.g.
 
 java -jar SpreadsheetComplexityAnalyser.jar to get the usage information.
 ## Contribute
-We would greatly appreciate contributions to this initiative. You can help improve the code, give feedback on our approach or otherwise contribute to the AIG. Contributions are not limited to OPF members or archives, in the same way that preservation, spreadsheets and significant properties are not issues limited to OPF members or archives.
+Even though our project ended and the AIG is disbanded, we would greatly appreciate contributions to this initiative. You can help improve the code and give feedback on our approach. Contributions are not limited to OPF members or archives, in the same way that preservation, spreadsheets and significant properties are not issues limited to OPF members or archives.
 ## Credits
 Thank you core AIG members: Kati Sein (NAE), Anders Bo Nielsen (DNA), Phillip Mike Toemmerholt (DNA), Frederik Holmelund Kjaerskov (DNA), Jacob Takema (KB/NANETH), Jonathan Tilbury (Preservica), Jack O'Sullivan (Preservica), Becky McGuinness (OPF) and Pepijn Lucker (NANETH).
 And thank you Carl Wilson (OPF) for getting the code to Github and sharing development best practices.

@@ -1,35 +1,67 @@
-<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://openpreservation.org/spreadsheetComplexityAnalyser" xmlns='http://openpreservation.org/spreadsheetComplexityAnalyser SpreadsheetComplexityAnalyser.xsd' xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://openpreservation.org/spreadsheetComplexityAnalyser" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:element name="spreadsheetComplexityAnalyserResults">
-    <xs:complexType>
+    <xs:complexType mixed="true">
       <xs:sequence>
-        <xs:element name="spreadsheetComplexityAnalyserResult" maxOccurs="unbounded" minOccurs="0">
+        <xs:element maxOccurs="unbounded" name="spreadsheetComplexityAnalyserResult">
           <xs:complexType>
             <xs:sequence>
-              <xs:element type="xs:string" name="file"/>
-              <xs:element type="xs:string" name="fileSize"/>
-              <xs:element type="xs:dateTime" name="created"/>
-              <xs:element type="xs:dateTime" name="lastAccessed"/>
-              <xs:element type="xs:dateTime" name="lastModified"/>
-              <xs:element type="xs:byte" name="worksheets"/>
-              <xs:element type="xs:byte" name="fonts"/>
-              <xs:element type="xs:byte" name="definedNames"/>
-              <xs:element type="xs:byte" name="cellStyles"/>
-              <xs:element type="xs:int" name="formulas"/>
-              <xs:element type="xs:byte" name="hyperlinks"/>
-              <xs:element type="xs:byte" name="comments"/>
-              <xs:element type="xs:byte" name="vbaMacros"/>
-              <xs:element type="xs:byte" name="shapes"/>
-              <xs:element type="xs:int" name="dates"/>
-              <xs:element type="xs:int" name="usedCells"/>
-              <xs:element type="xs:byte" name="externalLinks"/>
-              <xs:element type="xs:byte" name="revisionHistory"/>
-              <xs:element type="xs:string" name="tentativeAssessment"/>
+              <xs:element name="file">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="fileSize" type="xs:string" />
+                    <xs:element name="created" type="xs:dateTime" />
+                    <xs:element name="lastAccessed" type="xs:dateTime" />
+                    <xs:element name="lastModified" type="xs:dateTime" />
+                  </xs:sequence>
+                  <xs:attribute name="name" type="xs:string" use="required" />
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="workbook">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:choice maxOccurs="unbounded">
+                      <xs:element name="worksheets">
+                        <xs:complexType mixed="true">
+                          <xs:sequence minOccurs="0">
+                            <xs:element maxOccurs="unbounded" name="worksheet">
+                              <xs:complexType>
+                                <xs:sequence>
+                                  <xs:element name="formulas" type="xs:unsignedShort" />
+                                  <xs:element name="hyperlinks" type="xs:unsignedShort" />
+                                  <xs:element name="cellComments" type="xs:unsignedByte" />
+                                  <xs:element name="shapes" type="xs:unsignedByte" />
+                                  <xs:element name="charts" type="xs:unsignedByte" />
+                                  <xs:element name="pivotTables" type="xs:byte" />
+                                  <xs:element name="tables" type="xs:byte" />
+                                  <xs:element name="dates" type="xs:unsignedByte" />
+                                  <xs:element name="usedCells" type="xs:unsignedInt" />
+                                  <xs:element name="physicallyUsedCells" type="xs:unsignedInt" />
+                                  <xs:element name="usedRows" type="xs:short" />
+                                  <xs:element name="physicallyUsedRows" type="xs:unsignedShort" />
+                                </xs:sequence>
+                                <xs:attribute name="name" type="xs:string" use="required" />
+                              </xs:complexType>
+                            </xs:element>
+                          </xs:sequence>
+                        </xs:complexType>
+                      </xs:element>
+                      <xs:element name="fonts" type="xs:unsignedByte" />
+                      <xs:element name="definedNames" type="xs:unsignedByte" />
+                      <xs:element name="cellStyles" type="xs:unsignedByte" />
+                      <xs:element name="externalLinks" type="xs:byte" />
+                      <xs:element name="revisionHistory" type="xs:byte" />
+                      <xs:element name="vbaMacros" type="xs:unsignedByte" />
+                    </xs:choice>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="tentativeAssessment" type="xs:string" />
             </xs:sequence>
           </xs:complexType>
         </xs:element>
-        <xs:element type="xs:string" name="legend"/>
+        <xs:element name="legend" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
 </xs:schema>
-
