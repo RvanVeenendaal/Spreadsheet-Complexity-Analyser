@@ -30,11 +30,11 @@ The main reason for making this distinction was (cost-efficiency w.r.t.) normali
 
 ### Please note: this hypothesis was rejected. Please preserve spreadsheets in spreadsheet formats. Too many properties are lost when you normalise/convert to non-spreadsheet specific file formats. Our investigation helped confirm this, and will impact on e.g. Danish and Dutch government preferred file formats norms. See our final report for more information: https://zenodo.org/record/5468116.
 
-In order to distinguish between these two types of spreadsheets, we needed to be able to extract information about cells, sheets, formulas, named objects, macros, etc. Property extraction tools like JHOVE, FITS and Apache Tika don't extract that kind of information, and that led to the development of the Spreadsheet Complexity Analyser.
+But anyway, in order to distinguish between these two types of spreadsheets, we needed to be able to extract information about cells, sheets, formulas, named objects, macros, etc. Property extraction tools like JHOVE, FITS and Apache Tika don't extract that kind of information, and that led to the development of the Spreadsheet Complexity Analyser.
 ## Technology used
 The Spreadsheet Complexity Analyser is written in Java, and uses Apache POI-HSSF and POI-XSSF to access the Microsoft Excel spreadsheet formats (xls and xlsx) - which form the bulk of the spreadsheets that we (archives) receive.
 ## Installation
-The SpreadsheetComplexityAnalyser is available as an executable Java 8 jar file. 
+The SpreadsheetComplexityAnalyser is available as an executable Java 8 jar file. Please also download the .cfg and .xsd for SCA configuration and XML output validation.
 
 Execute e.g.
 
