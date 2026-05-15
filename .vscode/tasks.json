@@ -1,0 +1,51 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build SpreadsheetComplexityAnalyser (Maven)",
+            "type": "shell",
+            "command": "if (Test-Path \".\\mvnw.cmd\") { .\\mvnw.cmd -DskipTests package } else { mvn -DskipTests package }",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$javac"
+            ]
+        },
+        {
+            "label": "Build SpreadsheetComplexityAnalyser Fat JAR (Maven)",
+            "type": "shell",
+            "command": "if (Test-Path \".\\mvnw.cmd\") { .\\mvnw.cmd -DskipTests clean package -DskipAssembly=false } else { mvn -DskipTests clean package -DskipAssembly=false }",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$javac"
+            ]
+        },
+        {
+            "label": "Build SpreadsheetComplexityAnalyser Thin JAR (Maven)",
+            "type": "shell",
+            "command": "if (Test-Path \".\\mvnw.cmd\") { .\\mvnw.cmd -DskipTests clean package -DskipAssembly=true } else { mvn -DskipTests clean package -DskipAssembly=true }",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$javac"
+            ]
+        },
+        {
+            "label": "Run SpreadsheetComplexityAnalyser Help",
+            "type": "shell",
+            "command": "java -jar \"target/spreadsheet-complexity-analyser-1.0.0-SNAPSHOT-fat.jar\" -h",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": "Build SpreadsheetComplexityAnalyser (Maven)"
+        }
+    ]
+}
