@@ -4,7 +4,7 @@ The Spreadsheet Complexity Analyser is a prototype for the Archive Interest Grou
 ## Usage
 Build the project first (see Installation / Build below), then execute:
 
-java -jar target/spreadsheet-complexity-analyser-1.0.0-SNAPSHOT-fat.jar DIR
+java -jar target/SpreadsheetComplexityAnalyser-<version>.jar DIR
 
 to process *.xl[st][xm] and *.xl[akms] files in DIR (DIR must be a directory).
 
@@ -12,14 +12,14 @@ Use the command line parameter -v for verbose text output. Use the command line 
 
 Execute
 
-java -jar target/spreadsheet-complexity-analyser-1.0.0-SNAPSHOT-fat.jar
+java -jar target/SpreadsheetComplexityAnalyser-<version>.jar
 
 without any parameters to get usage information.
 
 SCA currently extracts:
 - File: file size, creation date/time, last accessed, last modified
 - Workbook: #worksheets, #fonts, #defined names, #cell styles, #external links, VBA macros (present or not, tentative) and revision history (credits: Rauno Umborg) 
-- Per work sheet: #formulas, #hyperlinks, #cellComments, #shapes, #dates, #cells used, #physical cells used, #rows used, #physical rows used, #tables, #pivot tables and #charts.
+- Per work sheet: #formulas, #hyperlinks, #cellComments, #shapes, #dates, #cells used, #physical cells used, #rows used, #physical rows used, #columns used, #physical columns used, #tables, #pivot tables and #charts.
 
 
 ## Motivation
@@ -46,12 +46,11 @@ Build:
 mvn -DskipTests package
 
 This creates:
-- Thin jar: target/spreadsheet-complexity-analyser-1.0.0-SNAPSHOT.jar
-- Fat (executable) jar: target/spreadsheet-complexity-analyser-1.0.0-SNAPSHOT-fat.jar
+- Release jar (executable, with dependencies): target/SpreadsheetComplexityAnalyser-<version>.jar
 
 Run e.g.
 
-java -jar target/spreadsheet-complexity-analyser-1.0.0-SNAPSHOT-fat.jar -h
+java -jar target/SpreadsheetComplexityAnalyser-<version>.jar -h
 
 If you use -c, keep SpreadsheetComplexityAnalyser.cfg in your working directory.
 

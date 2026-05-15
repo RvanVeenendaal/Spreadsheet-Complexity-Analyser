@@ -38,6 +38,7 @@
     </dependencies>
 
     <build>
+        <finalName>SpreadsheetComplexityAnalyser-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -71,7 +72,7 @@
                         </goals>
                         <configuration>
                             <skipAssembly>${skipAssembly}</skipAssembly>
-                            <finalName>${project.artifactId}-${project.version}-fat</finalName>
+                            <finalName>${project.build.finalName}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
