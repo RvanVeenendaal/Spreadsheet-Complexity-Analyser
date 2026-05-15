@@ -6,6 +6,8 @@ public class WorksheetProperties {
 	public int iCharts = 0;
 	public int iRowsUsed = 0;
 	public int iPhysicallyUsedRows = 0;
+	public int iColumnsUsed = 0;
+	public int iPhysicallyUsedColumns = 0;
 	public int iCellsUsed = 0;
 	public int iPhysicallyUsedCells = 0;
 	public int iFormulas = 0;
@@ -54,6 +56,18 @@ public class WorksheetProperties {
 	}
 	public void setiPhysicallyUsedRows(int iPhysicallyUsedRows) {
 		this.iPhysicallyUsedRows = iPhysicallyUsedRows;
+	}
+	public int getiColumnsUsed() {
+		return iColumnsUsed;
+	}
+	public void setiColumnsUsed(int iColumnsUsed) {
+		this.iColumnsUsed = iColumnsUsed;
+	}
+	public int getiPhysicallyUsedColumns() {
+		return iPhysicallyUsedColumns;
+	}
+	public void setiPhysicallyUsedColumns(int iPhysicallyUsedColumns) {
+		this.iPhysicallyUsedColumns = iPhysicallyUsedColumns;
 	}
 	public int getiCellsUsed() {
 		return iCellsUsed;

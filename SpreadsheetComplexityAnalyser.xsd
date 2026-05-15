@@ -39,6 +39,8 @@
                                   <xs:element name="physicallyUsedCells" type="xs:unsignedInt" />
                                   <xs:element name="usedRows" type="xs:short" />
                                   <xs:element name="physicallyUsedRows" type="xs:unsignedShort" />
+                                  <xs:element name="usedColumns" type="xs:unsignedShort" />
+                                  <xs:element name="physicallyUsedColumns" type="xs:unsignedShort" />
                                 </xs:sequence>
                                 <xs:attribute name="name" type="xs:string" use="required" />
                               </xs:complexType>

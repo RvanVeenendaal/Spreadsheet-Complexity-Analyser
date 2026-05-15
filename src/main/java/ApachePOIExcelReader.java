@@ -30,6 +30,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.function.IntConsumer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
@@ -56,6 +58,8 @@ public class ApachePOIExcelReader {
     private static int iTablesThreshold = 0;
     private static int iRowsUsedThreshold = 1000;
     private static int iPhysicalRowsUsedThreshold = 1000;
+	private static int iColumnsUsedThreshold = 100;
+	private static int iPhysicalColumnsUsedThreshold = 100;
     private static int iChartsThreshold = 0;
     private static int iWorksheetsThreshold = 1;
     private static int iFormulasThreshold = 0;
@@ -178,6 +182,7 @@ public class ApachePOIExcelReader {
 		        	}
 		        	worksheetProperties.setiRowsUsed(worksheetProperties.getiRowsUsed() + currentSheet.getLastRowNum());
 		        	worksheetProperties.setiPhysicallyUsedRows(worksheetProperties.getiPhysicallyUsedRows() + currentSheet.getPhysicalNumberOfRows());
+		        	Set<Integer> physicalColumnIndexes = new HashSet<>();
 
 		        	// There is no interface for get(PhysicalNumberOf)Columns
 		        	// (but you could use the number of (physical) cells per row)
@@ -190,6 +195,7 @@ public class ApachePOIExcelReader {
 			        	Iterator<Cell> cellIterator = currentRow.iterator();
 		                while (cellIterator.hasNext()) {
 		                    Cell currentCell = cellIterator.next();
+		                    physicalColumnIndexes.add(currentCell.getColumnIndex());
 		        			//System.err.println("Cell at row " + currentCell.getRowIndex() + " and column " + currentCell.getColumnIndex() + ": " +currentCell.getCellType());
 		                    if (currentCell.getCellType() == CellType.FORMULA) {
 		                    	worksheetProperties.setiFormulas(worksheetProperties.getiFormulas() + 1);
@@ -205,6 +211,8 @@ public class ApachePOIExcelReader {
 		                    }
 		                }
 		            }
+		        	worksheetProperties.setiColumnsUsed(physicalColumnIndexes.stream().mapToInt(i -> i).max().orElse(-1) + 1);
+		        	worksheetProperties.setiPhysicallyUsedColumns(physicalColumnIndexes.size());
 		        	sp.getWorksheetPropertiesList().add(worksheetProperties);
 		        }
 			}
@@ -263,7 +271,9 @@ public class ApachePOIExcelReader {
 					worksheetProperties.getiTables() > iTablesThreshold ||
 					worksheetProperties.getiCharts() > iChartsThreshold ||
 					worksheetProperties.getiRowsUsed() > iRowsUsedThreshold ||
-					worksheetProperties.getiPhysicallyUsedRows() > iPhysicalRowsUsedThreshold
+					worksheetProperties.getiPhysicallyUsedRows() > iPhysicalRowsUsedThreshold ||
+					worksheetProperties.getiColumnsUsed() > iColumnsUsedThreshold ||
+					worksheetProperties.getiPhysicallyUsedColumns() > iPhysicalColumnsUsedThreshold
 			) {
 				result = "complex/dynamic";				
 			}
@@ -318,6 +328,8 @@ public class ApachePOIExcelReader {
 		        System.out.println("\t\t\t\t\t<physicallyUsedCells>" + worksheetProperties.getiPhysicallyUsedCells() + "</physicallyUsedCells>");
 		        System.out.println("\t\t\t\t\t<usedRows>" + worksheetProperties.getiRowsUsed() + "</usedRows>");
 		        System.out.println("\t\t\t\t\t<physicallyUsedRows>" + worksheetProperties.getiPhysicallyUsedRows() + "</physicallyUsedRows>");
+		        System.out.println("\t\t\t\t\t<usedColumns>" + worksheetProperties.getiColumnsUsed() + "</usedColumns>");
+		        System.out.println("\t\t\t\t\t<physicallyUsedColumns>" + worksheetProperties.getiPhysicallyUsedColumns() + "</physicallyUsedColumns>");
 		        System.out.println("\t\t\t\t</worksheet>");
 	        }
 			else if (verbose) {
@@ -335,6 +347,8 @@ public class ApachePOIExcelReader {
 		        System.out.println("\t\t\tphysically used cells:\t" + worksheetProperties.getiPhysicallyUsedCells());
 		        System.out.println("\t\t\trows used:\t\t" + worksheetProperties.getiRowsUsed());
 		        System.out.println("\t\t\tphysically used rows:\t" + worksheetProperties.getiPhysicallyUsedRows());
+		        System.out.println("\t\t\tcolumns used:\t\t" + worksheetProperties.getiColumnsUsed());
+		        System.out.println("\t\t\tphysically used columns:\t" + worksheetProperties.getiPhysicallyUsedColumns());
 			}
 		}
 	    if (xml_out) { 
@@ -393,6 +407,8 @@ public class ApachePOIExcelReader {
 		   parseThresholdProperty(prop, "physicalCellsUsedThreshold", iPhysicalCellsUsedThreshold, value -> iPhysicalCellsUsedThreshold = value);
 		   parseThresholdProperty(prop, "rowsUsedThreshold", iRowsUsedThreshold, value -> iRowsUsedThreshold = value);
 		   parseThresholdProperty(prop, "physicalRowsUsedThreshold", iPhysicalRowsUsedThreshold, value -> iPhysicalRowsUsedThreshold = value);
+		   parseThresholdProperty(prop, "columnsUsedThreshold", iColumnsUsedThreshold, value -> iColumnsUsedThreshold = value);
+		   parseThresholdProperty(prop, "physicalColumnsUsedThreshold", iPhysicalColumnsUsedThreshold, value -> iPhysicalColumnsUsedThreshold = value);
 		   parseThresholdProperty(prop, "externalLinksThreshold", iExternalLinksThreshold, value -> iExternalLinksThreshold = value);
 		   parseThresholdProperty(prop, "hasRevisionHistoryThreshold", iHasRevisionHistoryThreshold, value -> iHasRevisionHistoryThreshold = value);
 		   parseThresholdProperty(prop, "pivotTablesThreshold", iPivotTablesThreshold, value -> iPivotTablesThreshold = value);
@@ -444,7 +460,8 @@ public class ApachePOIExcelReader {
     				+ "workbook: worksheets, fonts, defined names, cell styles, external links, vba macros\n"
     				+ "\tand revision history\n"
     				+ "per sheet: formulas, hyperlinks, cellComments, shapes, dates, cells used, physical\n"
-    				+ "\tcells used, rows used, physical rows used, tables, pivot tables and charts.\n"
+	    			+ "\tcells used, rows used, physical rows used, columns used, physical columns used,\n"
+	    			+ "\ttables, pivot tables and charts.\n"
     				+ "VBA macros: nonzero indicates possible VBA macros (tentative)\n\n"
     				+ "See the software's GitHub readme for more information:\n"
 	    			+ "https://github.com/RvanVeenendaal/Spreadsheet-Complexity-Analyser\n");
