@@ -1,19 +1,20 @@
 # Spreadsheet-Complexity-Analyser
 The Spreadsheet Complexity Analyser is a prototype for the Archive Interest Group (AIG) of the Open Preservation Foundation (OPF, http://openpreservation.org/).
-## Usage
-Execute
 
-java -jar SpreadsheetComplexityAnalyser.jar DIR
+## Usage
+Build the project first (see Installation / Build below), then execute:
+
+java -jar target/spreadsheet-complexity-analyser-1.0.0-SNAPSHOT-fat.jar DIR
 
 to process *.xl[st][xm] and *.xl[akms] files in DIR (DIR must be a directory).
 
-Use the command line parameter -v for verbose text output. Use the command line parameter -x for verbose XML output (which suppresses -v). Use the command line parameter -r to also recurse into any subdirectories. The parameter -h will output help information.
+Use the command line parameter -v for verbose text output. Use the command line parameter -x for verbose XML output (which suppresses -v). Use the command line parameter -r to recurse into subdirectories. Use -c to load threshold values from SpreadsheetComplexityAnalyser.cfg in the current working directory. The parameter -h outputs help information.
 
 Execute
 
-java -jar SpreadsheetComplexityAnalyser.jar
+java -jar target/spreadsheet-complexity-analyser-1.0.0-SNAPSHOT-fat.jar
 
-without any paramters to get usage information.
+without any parameters to get usage information.
 
 SCA currently extracts:
 - File: file size, creation date/time, last accessed, last modified
@@ -31,14 +32,29 @@ The main reason for making this distinction was (cost-efficiency w.r.t.) normali
 ### Please note: this hypothesis was rejected. Please preserve spreadsheets in spreadsheet formats. Too many properties are lost when you normalise/convert to non-spreadsheet specific file formats. Our investigation helped confirm this, and will impact on e.g. Danish and Dutch government preferred file formats norms. See our final report for more information: https://zenodo.org/record/5468116.
 
 But anyway, in order to distinguish between these two types of spreadsheets, we needed to be able to extract information about cells, sheets, formulas, named objects, macros, etc. Property extraction tools like JHOVE, FITS and Apache Tika don't extract that kind of information, and that led to the development of the Spreadsheet Complexity Analyser.
+
 ## Technology used
-The Spreadsheet Complexity Analyser is written in Java, and uses Apache POI-HSSF and POI-XSSF to access the Microsoft Excel spreadsheet formats (xls and xlsx) - which form the bulk of the spreadsheets that we (archives) receive.
+The Spreadsheet Complexity Analyser is written in Java and uses Apache POI-HSSF and POI-XSSF to access Microsoft Excel spreadsheet formats (xls and xlsx). The project is built with Maven.
+
 ## Installation
-The SpreadsheetComplexityAnalyser is available as an executable Java 8 jar file. Please also download the .cfg and .xsd for SCA configuration and XML output validation.
+Prerequisites:
+- Java (JDK) installed
+- Maven installed
 
-Execute e.g.
+Build:
 
-java -jar SpreadsheetComplexityAnalyser.jar to get the usage information.
+mvn -DskipTests package
+
+This creates:
+- Thin jar: target/spreadsheet-complexity-analyser-1.0.0-SNAPSHOT.jar
+- Fat (executable) jar: target/spreadsheet-complexity-analyser-1.0.0-SNAPSHOT-fat.jar
+
+Run e.g.
+
+java -jar target/spreadsheet-complexity-analyser-1.0.0-SNAPSHOT-fat.jar -h
+
+If you use -c, keep SpreadsheetComplexityAnalyser.cfg in your working directory.
+
 ## Contribute
 Even though our project ended and the AIG is disbanded, we would greatly appreciate contributions to this initiative. You can help improve the code and give feedback on our approach. Contributions are not limited to OPF members or archives, in the same way that preservation, spreadsheets and significant properties are not issues limited to OPF members or archives.
 ## Credits
