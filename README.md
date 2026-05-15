@@ -4,23 +4,16 @@ The Spreadsheet Complexity Analyser is a prototype for the Archive Interest Grou
 ## Usage
 Build the project first (see Installation / Build below), then execute:
 
-java -jar target/SpreadsheetComplexityAnalyser-<version>.jar DIR
+java -jar target/SpreadsheetComplexityAnalyser-version.jar DIR
 
 to process *.xl[st][xm] and *.xl[akms] files in DIR (DIR must be a directory).
 
 Use the command line parameter -v for verbose text output. Use the command line parameter -x for verbose XML output (which suppresses -v). Use the command line parameter -r to recurse into subdirectories. Use -c to load threshold values from SpreadsheetComplexityAnalyser.cfg in the current working directory. The parameter -h outputs help information.
 
-Execute
-
-java -jar target/SpreadsheetComplexityAnalyser-<version>.jar
-
-without any parameters to get usage information.
-
 SCA currently extracts:
 - File: file size, creation date/time, last accessed, last modified
 - Workbook: #worksheets, #fonts, #defined names, #cell styles, #external links, VBA macros (present or not, tentative) and revision history (credits: Rauno Umborg) 
 - Per work sheet: #formulas, #hyperlinks, #cellComments, #shapes, #dates, #cells used, #physical cells used, #rows used, #physical rows used, #columns used, #physical columns used, #tables, #pivot tables and #charts.
-
 
 ## Motivation
 The Open Preservation Foundation Archives Interest Group investigated the significant properties of spreadsheets. We wanted to find the best suited (spreadsheet) file format for preserving (significant properties of) spreadsheets. As part of this study, we wanted to be able to distinguish between 'simple/static' spreadsheets and 'complex/dynamic' spreadsheets.
@@ -46,18 +39,16 @@ Build:
 mvn -DskipTests package
 
 This creates:
-- Release jar (executable, with dependencies): target/SpreadsheetComplexityAnalyser-<version>.jar
-
-Run e.g.
-
-java -jar target/SpreadsheetComplexityAnalyser-<version>.jar -h
+- Release jar (executable, with dependencies): target/SpreadsheetComplexityAnalyser-version.jar
 
 If you use -c, keep SpreadsheetComplexityAnalyser.cfg in your working directory.
 
 ## Contribute
 Even though our project ended and the AIG is disbanded, we would greatly appreciate contributions to this initiative. You can help improve the code and give feedback on our approach. Contributions are not limited to OPF members or archives, in the same way that preservation, spreadsheets and significant properties are not issues limited to OPF members or archives.
+
 ## Credits
 Thank you core AIG members: Kati Sein (NAE), Anders Bo Nielsen (DNA), Phillip Mike Toemmerholt (DNA), Frederik Holmelund Kjaerskov (DNA), Jacob Takema (KB/NANETH), Jonathan Tilbury (Preservica), Jack O'Sullivan (Preservica), Becky McGuinness (OPF) and Pepijn Lucker (NANETH).
 And thank you Carl Wilson (OPF) for getting the code to Github and sharing development best practices.
+
 ## License
 The Spreadsheet Complexity Analyser is the result my work as a Preservation Officer at the National Archives of the Netherlands. We, and the Dutch government in general, want to make as much information available in the public domain. As a result, my intellectual property in the Spreadsheet Complexity Analyser has a CC0 license (https://creativecommons.org/choose/zero/). Included libraries may have their own licenses.
